@@ -1,9 +1,8 @@
 #include <iostream>
-#include <vector>
 #include <fstream>
-#include <cmath>
+#include <vector>
 #include <algorithm>
-#include <limits>
+#include <cmath>
 
 struct Pixel {
     unsigned char b, g, r;
@@ -24,30 +23,26 @@ bool Image::load(const std::string& filename) {
         return false;
     }
 
-    file.seekg(12); // Skip to width and height in TGA header
-    file.read(reinterpret_cast<char*>(&width), 2);
-    file.read(reinterpret_cast<char*>(&height), 2);
+    unsigned char header[18];
+    file.read(reinterpret_cast<char*>(header), sizeof(header));
 
-    // Check if width and height are reasonable
-    const int MAX_DIMENSION = 4096; // Set a sensible max dimension limit
-    if (width <= 0 || height <= 0 || width > MAX_DIMENSION || height > MAX_DIMENSION) {
-        std::cerr << "Error: Invalid or excessively large image dimensions in " << filename
-                  << " (" << width << "x" << height << ")" << std::endl;
+    // Extract width and height from header
+    width = header[12] | (header[13] << 8);
+    height = header[14] | (header[15] << 8);
+
+    // Validate dimensions
+    if (width <= 0 || height <= 0) {
+        std::cerr << "Error: Invalid image dimensions in " << filename << std::endl;
         return false;
     }
 
-    file.seekg(18); // Skip to pixel data
+    // Resize pixel array to fit the image dimensions
+    pixels.resize(width * height);
 
-    try {
-        pixels.resize(width * height); // Resize to fit all pixels
-    } catch (const std::length_error& e) {
-        std::cerr << "Error: Failed to resize pixels vector - " << e.what() << std::endl;
-        return false;
-    }
-
+    // Read pixel data
     file.read(reinterpret_cast<char*>(pixels.data()), pixels.size() * sizeof(Pixel));
-    if (file.gcount() != pixels.size() * sizeof(Pixel)) {
-        std::cerr << "Error: Pixel data read size mismatch in " << filename << std::endl;
+    if (!file) {
+        std::cerr << "Error: Failed to read pixel data in " << filename << std::endl;
         return false;
     }
 
@@ -62,20 +57,26 @@ bool Image::save(const std::string& filename) const {
         return false;
     }
 
+    // Write a basic 18-byte TGA header
     unsigned char header[18] = {0};
-    header[2] = 2;
+    header[2] = 2; // Uncompressed true-color image
     header[12] = width & 0xFF;
     header[13] = (width >> 8) & 0xFF;
     header[14] = height & 0xFF;
     header[15] = (height >> 8) & 0xFF;
-    header[16] = 24;
+    header[16] = 24; // 24 bits per pixel (RGB)
 
-    file.write(reinterpret_cast<const char*>(header), 18);
+    file.write(reinterpret_cast<const char*>(header), sizeof(header));
     file.write(reinterpret_cast<const char*>(pixels.data()), pixels.size() * sizeof(Pixel));
+
+    if (!file) {
+        std::cerr << "Error: Failed to write pixel data to " << filename << std::endl;
+        return false;
+    }
+
     file.close();
     return true;
 }
-
 // Manipulation Functions
 Pixel multiply(const Pixel& p1, const Pixel& p2) {
     Pixel result;
