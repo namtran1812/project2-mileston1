@@ -1,27 +1,19 @@
-# Makefile for Image Processing Project - Milestone 1
+TARGET = project2.out
+SRCS = src/*.cpp 
 
-# Compiler and flags
-CXX = g++
-CXXFLAGS = -std=c++11 -Wall
+all: $(TARGET)
 
-# Source and output files
-SRC = main.cpp
-EXEC = project2.out
+$(TARGET): $(SRCS)
+	g++ -std=c++11 -o $(TARGET) $(SRCS)
 
-# Default target to build the project
-all: $(EXEC)
+build: $(SRCS)
+	g++ -std=c++11 -o $(TARGET) $(SRCS)
 
-# Link and compile
-$(EXEC): $(SRC)
-	$(CXX) $(CXXFLAGS) -o $(EXEC) $(SRC)
+run: $(TARGET)
+	./$(TARGET)
 
-# Clean up build files
 clean:
-	rm -f $(EXEC) *.o
+	rm -f $(TARGET) 
+	rm -f output/*.tga  
 
-# Run the executable
-run: $(EXEC)
-	./$(EXEC)
-
-# Phony targets
-.PHONY: all clean run
+.PHONY: all run clean build
