@@ -1,17 +1,27 @@
-# Define the compiler and standard
+# Makefile for Image Processing Project - Milestone 1
+
+# Compiler and flags
 CXX = g++
-CXXFLAGS = -std=c++11
+CXXFLAGS = -std=c++11 -Wall
 
-# Define the target executable
-TARGET = project2.out
+# Source and output files
+SRC = main.cpp
+EXEC = project2.out
 
-# Define the source files explicitly without using wildcards
-SOURCES = src/main.cpp src/TGAImage.cpp src/ImageManipulations.cpp
+# Default target to build the project
+all: $(EXEC)
 
-# Rule to build the target executable
-$(TARGET): $(SOURCES)
-	$(CXX) $(CXXFLAGS) -o $(TARGET) $(SOURCES)
+# Link and compile
+$(EXEC): $(SRC)
+	$(CXX) $(CXXFLAGS) -o $(EXEC) $(SRC)
 
-# Clean rule to remove the executable
+# Clean up build files
 clean:
-	rm -f $(TARGET)
+	rm -f $(EXEC) *.o
+
+# Run the executable
+run: $(EXEC)
+	./$(EXEC)
+
+# Phony targets
+.PHONY: all clean run
