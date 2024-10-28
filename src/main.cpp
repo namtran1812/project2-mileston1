@@ -3,6 +3,7 @@
 #include <fstream>
 #include <cmath>
 #include <algorithm>
+#include <limits>
 
 struct Pixel {
     unsigned char b, g, r;
@@ -23,13 +24,15 @@ bool Image::load(const std::string& filename) {
         return false;
     }
 
-    file.seekg(12); // Skip unnecessary bytes
+    file.seekg(12); // Skip to width and height in TGA header
     file.read(reinterpret_cast<char*>(&width), 2);
     file.read(reinterpret_cast<char*>(&height), 2);
 
-    // Check if width and height are valid
-    if (width <= 0 || height <= 0) {
-        std::cerr << "Error: Invalid image dimensions in " << filename << std::endl;
+    // Check if width and height are reasonable
+    const int MAX_DIMENSION = 4096; // Set a sensible max dimension limit
+    if (width <= 0 || height <= 0 || width > MAX_DIMENSION || height > MAX_DIMENSION) {
+        std::cerr << "Error: Invalid or excessively large image dimensions in " << filename
+                  << " (" << width << "x" << height << ")" << std::endl;
         return false;
     }
 
