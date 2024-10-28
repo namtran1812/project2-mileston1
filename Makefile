@@ -1,19 +1,17 @@
+# Define the compiler and standard
+CXX = g++
+CXXFLAGS = -std=c++11
+
+# Define the target executable
 TARGET = project2.out
-SRCS = src/*.cpp 
 
-all: $(TARGET)
+# Define the source files explicitly without using wildcards
+SOURCES = src/main.cpp src/TGAImage.cpp src/ImageManipulations.cpp
 
-$(TARGET): $(SRCS)
-	g++ -std=c++11 -o $(TARGET) $(SRCS)
+# Rule to build the target executable
+$(TARGET): $(SOURCES)
+	$(CXX) $(CXXFLAGS) -o $(TARGET) $(SOURCES)
 
-build: $(SRCS)
-	g++ -std=c++11 -o $(TARGET) $(SRCS)
-
-run: $(TARGET)
-	./$(TARGET)
-
+# Clean rule to remove the executable
 clean:
-	rm -f $(TARGET) 
-	rm -f output/*.tga  
-
-.PHONY: all run clean build
+	rm -f $(TARGET)
