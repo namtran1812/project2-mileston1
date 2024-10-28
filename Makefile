@@ -1,8 +1,19 @@
-CXX = g++
-CXXFLAGS = -std=c++11
+TARGET = project2.out
+SRCS = src/*.cpp 
 
-project2.out: src/main.cpp src/TGAImage.cpp src/ImageManipulations.cpp
-	$(CXX) $(CXXFLAGS) -o project2.out src/main.cpp src/TGAImage.cpp src/ImageManipulations.cpp
+all: $(TARGET)
+
+$(TARGET): $(SRCS)
+	g++ -std=c++11 -o $(TARGET) $(SRCS)
+
+build: $(SRCS)
+	g++ -std=c++11 -o $(TARGET) $(SRCS)
+
+run: $(TARGET)
+	./$(TARGET)
 
 clean:
-	rm -f project2.out
+	rm -f $(TARGET) 
+	rm -f output/*.tga  
+
+.PHONY: all run clean build
