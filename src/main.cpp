@@ -74,19 +74,32 @@ bool Image::save(const std::string& filename) const {
 }
 
 // Manipulation Functions
+
 Pixel multiply(const Pixel& p1, const Pixel& p2) {
     Pixel result;
-    result.b = static_cast<unsigned char>(std::round((p1.b / 255.0) * (p2.b / 255.0) * 255));
-    result.g = static_cast<unsigned char>(std::round((p1.g / 255.0) * (p2.g / 255.0) * 255));
-    result.r = static_cast<unsigned char>(std::round((p1.r / 255.0) * (p2.r / 255.0) * 255));
+    result.b = static_cast<unsigned char>(std::round((p1.b / 255.0) * (p2.b / 255.0) * 255 + 0.5f));
+    result.g = static_cast<unsigned char>(std::round((p1.g / 255.0) * (p2.g / 255.0) * 255 + 0.5f));
+    result.r = static_cast<unsigned char>(std::round((p1.r / 255.0) * (p2.r / 255.0) * 255 + 0.5f));
     return result;
 }
 
 Pixel screen(const Pixel& p1, const Pixel& p2) {
     Pixel result;
-    result.b = static_cast<unsigned char>(std::round(255 - (1 - p1.b / 255.0) * (1 - p2.b / 255.0) * 255));
-    result.g = static_cast<unsigned char>(std::round(255 - (1 - p1.g / 255.0) * (1 - p2.g / 255.0) * 255));
-    result.r = static_cast<unsigned char>(std::round(255 - (1 - p1.r / 255.0) * (1 - p2.r / 255.0) * 255));
+    result.b = static_cast<unsigned char>(std::round((1 - (1 - p1.b / 255.0) * (1 - p2.b / 255.0)) * 255 + 0.5f));
+    result.g = static_cast<unsigned char>(std::round((1 - (1 - p1.g / 255.0) * (1 - p2.g / 255.0)) * 255 + 0.5f));
+    result.r = static_cast<unsigned char>(std::round((1 - (1 - p1.r / 255.0) * (1 - p2.r / 255.0)) * 255 + 0.5f));
+    return result;
+}
+
+Pixel overlay(const Pixel& p1, const Pixel& p2) {
+    Pixel result;
+    auto overlay_channel = [](float np1, float np2) {
+        return (np2 <= 0.5f) ? 2 * np1 * np2 : 1 - 2 * (1 - np1) * (1 - np2);
+    };
+
+    result.b = static_cast<unsigned char>(std::round(overlay_channel(p1.b / 255.0, p2.b / 255.0) * 255 + 0.5f));
+    result.g = static_cast<unsigned char>(std::round(overlay_channel(p1.g / 255.0, p2.g / 255.0) * 255 + 0.5f));
+    result.r = static_cast<unsigned char>(std::round(overlay_channel(p1.r / 255.0, p2.r / 255.0) * 255 + 0.5f));
     return result;
 }
 
@@ -96,17 +109,6 @@ Pixel subtract(const Pixel& p1, const Pixel& p2) {
 
 Pixel add(const Pixel& p1, const Pixel& p2) {
     return {std::min(255, p1.b + p2.b), std::min(255, p1.g + p2.g), std::min(255, p1.r + p2.r)};
-}
-
-Pixel overlay(const Pixel& p1, const Pixel& p2) {
-    Pixel result;
-    auto overlay_channel = [](float np1, float np2) {
-        return (np2 <= 0.5) ? 2 * np1 * np2 : 1 - 2 * (1 - np1) * (1 - np2);
-    };
-    result.b = static_cast<unsigned char>(overlay_channel(p1.b / 255.0, p2.b / 255.0) * 255);
-    result.g = static_cast<unsigned char>(overlay_channel(p1.g / 255.0, p2.g / 255.0) * 255);
-    result.r = static_cast<unsigned char>(overlay_channel(p1.r / 255.0, p2.r / 255.0) * 255);
-    return result;
 }
 
 // Task functions
