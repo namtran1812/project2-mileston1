@@ -18,15 +18,36 @@ struct Image {
 
 bool Image::load(const std::string& filename) {
     std::ifstream file(filename, std::ios::binary);
-    if (!file.is_open()) return false;
+    if (!file.is_open()) {
+        std::cerr << "Error: Could not open file " << filename << std::endl;
+        return false;
+    }
 
-    file.seekg(12);
+    file.seekg(12); // Skip unnecessary bytes
     file.read(reinterpret_cast<char*>(&width), 2);
     file.read(reinterpret_cast<char*>(&height), 2);
-    file.seekg(18);
 
-    pixels.resize(width * height);
+    // Check if width and height are valid
+    if (width <= 0 || height <= 0) {
+        std::cerr << "Error: Invalid image dimensions in " << filename << std::endl;
+        return false;
+    }
+
+    file.seekg(18); // Skip to pixel data
+
+    try {
+        pixels.resize(width * height); // Resize to fit all pixels
+    } catch (const std::length_error& e) {
+        std::cerr << "Error: Failed to resize pixels vector - " << e.what() << std::endl;
+        return false;
+    }
+
     file.read(reinterpret_cast<char*>(pixels.data()), pixels.size() * sizeof(Pixel));
+    if (file.gcount() != pixels.size() * sizeof(Pixel)) {
+        std::cerr << "Error: Pixel data read size mismatch in " << filename << std::endl;
+        return false;
+    }
+
     file.close();
     return true;
 }
