@@ -55,6 +55,7 @@ task12:
 task13:
 	./$(TARGET) output/part13.tga input/layer5.tga subtract input/pattern4.tga
 
+# Additional task rules for parts 14-20 (if needed)
 task14:
 	./$(TARGET) output/part14.tga input/car.tga flip flip flip flip
 
@@ -77,7 +78,7 @@ task20:
 	./$(TARGET) output/part20.tga input/layer3.tga screen input/layer2.tga onlygreen
 
 # Run all tasks sequentially for testing
-run: task1 task2 task3 task4 task5 task6 task7 task8 task9 task10 task11 task12 task13 task14 task15 task16 task17 task18 task19 task20
+tasks: task1 task2 task3 task4 task5 task6 task7 task8 task9 task10 task11 task12 task13 task14 task15 task16 task17 task18 task19 task20
 
 # Clean up executable and output images
 clean:
