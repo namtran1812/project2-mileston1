@@ -21,7 +21,7 @@ struct Image {
 bool Image::load(const std::string& filename) {
     std::ifstream file(filename, std::ios::binary);
     if (!file.is_open()) {
-        std::cerr << "Error: Could not open file " << filename << std::endl;
+        std::cerr << "Invalid argument, file does not exist." << std::endl;
         return false;
     }
 
@@ -62,7 +62,7 @@ bool Image::save(const std::string& filename) const {
     header[14] = height & 0xFF;
     header[15] = (height >> 8) & 0xFF;
     header[16] = 24; // 24 bits per pixel (RGB)
-    header[17] = 0x00; // Image descriptor byte, sets origin in lower-left
+    header[17] = 0x20; // Image descriptor byte (sets origin in upper-left)
 
     file.write(reinterpret_cast<const char*>(header), sizeof(header));
     file.write(reinterpret_cast<const char*>(pixels.data()), pixels.size() * sizeof(Pixel));
@@ -76,7 +76,7 @@ bool Image::save(const std::string& filename) const {
     return true;
 }
 
-// Manipulation Functions (Additions & Modifications based on errors)
+// Manipulation Functions
 Pixel multiply(const Pixel& p1, const Pixel& p2) {
     Pixel result;
     result.b = static_cast<unsigned char>(std::round((p1.b / 255.0) * (p2.b / 255.0) * 255));
@@ -107,7 +107,7 @@ void add_channel(Image& image, int value, char channel) {
     }
 }
 
-// Updated scale functions
+// Scale function for each channel
 void scale_channel(Image& image, int factor, char channel) {
     for (Pixel& p : image.pixels) {
         if (channel == 'r') p.r = static_cast<unsigned char>(std::min(255, p.r * factor));
@@ -116,6 +116,7 @@ void scale_channel(Image& image, int factor, char channel) {
     }
 }
 
+// Overlay Function
 void overlay(Image& image, const Image& layer) {
     for (size_t i = 0; i < image.pixels.size(); ++i) {
         image.pixels[i].b = static_cast<unsigned char>((image.pixels[i].b / 255.0) * (layer.pixels[i].b / 255.0) * 255);
@@ -146,6 +147,7 @@ void only_green(Image& image) {
     }
 }
 
+// Combine three channels into one image
 void combine(Image& image, const Image& r, const Image& g, const Image& b) {
     for (size_t i = 0; i < image.pixels.size(); ++i) {
         image.pixels[i].r = r.pixels[i].r;
@@ -184,7 +186,6 @@ int main(int argc, char* argv[]) {
 
     Image trackingImage;
     if (!trackingImage.load(inputFilename)) {
-        std::cerr << "File does not exist." << std::endl;
         return 1;
     }
 
@@ -199,12 +200,11 @@ int main(int argc, char* argv[]) {
             }
             std::string secondImageFile = argv[++argIndex];
             if (secondImageFile.size() < 4 || secondImageFile.substr(secondImageFile.size() - 4) != ".tga") {
-                std::cerr << "Invalid argument, invalid file name." << std::endl;
+                std::cerr << "Invalid argument, file does not exist." << std::endl;
                 return 1;
             }
             Image secondImage;
             if (!secondImage.load(secondImageFile)) {
-                std::cerr << "Invalid argument, file does not exist." << std::endl;
                 return 1;
             }
             for (size_t i = 0; i < trackingImage.pixels.size(); ++i) {
@@ -218,12 +218,11 @@ int main(int argc, char* argv[]) {
             }
             std::string secondImageFile = argv[++argIndex];
             if (secondImageFile.size() < 4 || secondImageFile.substr(secondImageFile.size() - 4) != ".tga") {
-                std::cerr << "Invalid argument, invalid file name." << std::endl;
+                std::cerr << "Invalid argument, file does not exist." << std::endl;
                 return 1;
             }
             Image secondImage;
             if (!secondImage.load(secondImageFile)) {
-                std::cerr << "Invalid argument, file does not exist." << std::endl;
                 return 1;
             }
             for (size_t i = 0; i < trackingImage.pixels.size(); ++i) {
@@ -319,7 +318,6 @@ int main(int argc, char* argv[]) {
             std::string layerFile = argv[++argIndex];
             Image layer;
             if (!layer.load(layerFile)) {
-                std::cerr << "Invalid argument, file does not exist." << std::endl;
                 return 1;
             }
             overlay(trackingImage, layer);
@@ -332,7 +330,6 @@ int main(int argc, char* argv[]) {
             std::string layerFile = argv[++argIndex];
             Image layer;
             if (!layer.load(layerFile)) {
-                std::cerr << "Invalid argument, file does not exist." << std::endl;
                 return 1;
             }
             screen(trackingImage, layer);
@@ -354,7 +351,6 @@ int main(int argc, char* argv[]) {
             
             Image r, g, b;
             if (!r.load(rFile) || !g.load(gFile) || !b.load(bFile)) {
-                std::cerr << "Invalid argument, file does not exist." << std::endl;
                 return 1;
             }
             combine(trackingImage, r, g, b);
