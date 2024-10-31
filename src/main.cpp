@@ -76,7 +76,7 @@ bool Image::save(const std::string& filename) const {
     return true;
 }
 
-// Manipulation Functions (Additions & Modifications based on errors)
+// Manipulation Functions
 Pixel multiply(const Pixel& p1, const Pixel& p2) {
     Pixel result;
     result.b = static_cast<unsigned char>(std::round((p1.b / 255.0) * (p2.b / 255.0) * 255));
