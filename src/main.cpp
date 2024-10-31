@@ -159,64 +159,55 @@ void printHelp() {
               << "Usage:\n\t./project2.out [output] [firstImage] [method] [...]\n";
 }
 
-bool validateTGAFileName(const std::string &filename) {
-    return filename.size() > 4 && filename.substr(filename.size() - 4) == ".tga";
-}
-
 // Main function
 int main(int argc, char *argv[]) {
-    if (argc < 3 || (argc == 2 && std::string(argv[1]) == "--help")) {
-        std::cout << "Project 2: Image Processing, Fall 2024\n\n"
-                  << "Usage:\n\t./project2.out [output] [firstImage] [method] [...]\n";
+    if (argc < 2 || (argc == 2 && std::string(argv[1]) == "--help")) {
+        printHelp();
         return 0;
     }
 
     std::string outputFilename = argv[1];
-    std::string firstImageFilename = argv[2];
-
-    // Validate output and input filenames
-    if (!validateTGAFileName(outputFilename) || !validateTGAFileName(firstImageFilename)) {
-        std::cerr << "Invalid file name." << std::endl;
+    if (outputFilename.find(".tga") == std::string::npos) {
+        std::cerr << "Invalid file name.\n";
         return 1;
     }
 
+    std::string firstImageFilename = argv[2];
     Image trackingImg;
     if (!trackingImg.load(firstImageFilename)) {
-        std::cerr << "Error: Could not open file " << firstImageFilename << std::endl;
+        std::cerr << "File does not exist.\n";
         return 1;
     }
 
     for (int i = 3; i < argc; ++i) {
         std::string method = argv[i];
         if (method == "multiply") {
-            if (++i >= argc) {
-                std::cerr << "Missing argument." << std::endl;
-                return 1;
-            }
-            std::string multiplyFile = argv[i];
-            if (!validateTGAFileName(multiplyFile)) {
-                std::cerr << "Invalid argument, file does not exist." << std::endl;
-                return 1;
-            }
-            Image otherImg;
-            if (!otherImg.load(multiplyFile)) {
-                std::cerr << "Error: Could not open file " << multiplyFile << std::endl;
-                return 1;
-            }
-            for (size_t j = 0; j < trackingImg.pixels.size(); ++j) {
-                trackingImg.pixels[j] = multiply(trackingImg.pixels[j], otherImg.pixels[j]);
-            }
+            if (++i >= argc) { std::cerr << "Missing argument.\n"; return 1; }
+            performMultiply(trackingImg, argv[i]);
+        } else if (method == "screen") {
+            if (++i >= argc) { std::cerr << "Missing argument.\n"; return 1; }
+            performScreen(trackingImg, argv[i]);
+        } else if (method == "addgreen") {
+            if (++i >= argc) { std::cerr << "Missing argument.\n"; return 1; }
+            int value = std::stoi(argv[i]);
+            performAddGreen(trackingImg, value);
+        } else if (method == "scalered") {
+            if (++i >= argc) { std::cerr << "Missing argument.\n"; return 1; }
+            int value = std::stoi(argv[i]);
+            performScaleRed(trackingImg, value);
+        } else if (method == "flip") {
+            performFlip(trackingImg);
         } else {
-            std::cerr << "Invalid method name." << std::endl;
+            std::cerr << "Invalid method name.\n";
             return 1;
         }
     }
 
     if (!trackingImg.save(outputFilename)) {
-        std::cerr << "Error writing output file." << std::endl;
+        std::cerr << "Error writing output file.\n";
         return 1;
     }
 
-    std::cout << "Processing completed successfully." << std::endl;
+    std::cout << "Processing completed successfully.\n";
     return 0;
 }
