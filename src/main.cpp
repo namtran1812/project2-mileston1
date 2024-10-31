@@ -62,7 +62,7 @@ bool Image::save(const std::string& filename) const {
     header[14] = height & 0xFF;
     header[15] = (height >> 8) & 0xFF;
     header[16] = 24; // 24 bits per pixel (RGB)
-    header[17] = 0x00; // Standard image descriptor byte (bottom-left origin)
+    header[17] = 0x20; // Image descriptor byte corrected
 
     file.write(reinterpret_cast<const char*>(header), sizeof(header));
     file.write(reinterpret_cast<const char*>(pixels.data()), pixels.size() * sizeof(Pixel));
@@ -158,7 +158,7 @@ void printHelp() {
 }
 
 int main(int argc, char* argv[]) {
-    if (argc < 2 || (argc == 2 && strcmp(argv[1], "--help") == 0)) {
+    if (argc == 1 || (argc == 2 && std::strcmp(argv[1], "--help") == 0)) {
         printHelp();
         return 0;
     }
@@ -182,15 +182,14 @@ int main(int argc, char* argv[]) {
 
     Image trackingImage;
     if (!trackingImage.load(inputFilename)) {
-        std::cerr << "Error: File does not exist." << std::endl;
+        std::cerr << "Error: Could not open file " << inputFilename << std::endl;
         return 1;
     }
 
     int argIndex = 3;
     while (argIndex < argc) {
-        std::string method = argv[argIndex];
-        // Further logic for each method
-        argIndex++;
+        std::string method = argv[argIndex++];
+        // Further methods here
     }
 
     if (!trackingImage.save(outputFilename)) {
