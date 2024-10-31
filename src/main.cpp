@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <string>
 #include <algorithm>
 #include <cmath>
 
@@ -26,20 +27,15 @@ bool Image::load(const std::string& filename) {
     unsigned char header[18];
     file.read(reinterpret_cast<char*>(header), sizeof(header));
 
-    // Extract width and height from header
     width = header[12] | (header[13] << 8);
     height = header[14] | (header[15] << 8);
 
-    // Validate dimensions
     if (width <= 0 || height <= 0) {
         std::cerr << "Error: Invalid image dimensions in " << filename << std::endl;
         return false;
     }
 
-    // Resize pixel array to fit the image dimensions
     pixels.resize(width * height);
-
-    // Read pixel data
     file.read(reinterpret_cast<char*>(pixels.data()), pixels.size() * sizeof(Pixel));
     if (!file) {
         std::cerr << "Error: Failed to read pixel data in " << filename << std::endl;
@@ -57,14 +53,13 @@ bool Image::save(const std::string& filename) const {
         return false;
     }
 
-    // Write a basic 18-byte TGA header
     unsigned char header[18] = {0};
-    header[2] = 2; // Uncompressed true-color image
+    header[2] = 2;
     header[12] = width & 0xFF;
     header[13] = (width >> 8) & 0xFF;
     header[14] = height & 0xFF;
     header[15] = (height >> 8) & 0xFF;
-    header[16] = 24; // 24 bits per pixel (RGB)
+    header[16] = 24;
 
     file.write(reinterpret_cast<const char*>(header), sizeof(header));
     file.write(reinterpret_cast<const char*>(pixels.data()), pixels.size() * sizeof(Pixel));
@@ -77,7 +72,8 @@ bool Image::save(const std::string& filename) const {
     file.close();
     return true;
 }
-// Manipulation Functions
+
+// Image manipulation functions
 Pixel multiply(const Pixel& p1, const Pixel& p2) {
     Pixel result;
     result.b = static_cast<unsigned char>(std::round((p1.b / 255.0) * (p2.b / 255.0) * 255));
@@ -95,11 +91,15 @@ Pixel screen(const Pixel& p1, const Pixel& p2) {
 }
 
 Pixel subtract(const Pixel& p1, const Pixel& p2) {
-    return {std::max(0, p1.b - p2.b), std::max(0, p1.g - p2.g), std::max(0, p1.r - p2.r)};
+    return {static_cast<unsigned char>(std::max(0, p1.b - p2.b)),
+            static_cast<unsigned char>(std::max(0, p1.g - p2.g)),
+            static_cast<unsigned char>(std::max(0, p1.r - p2.r))};
 }
 
 Pixel add(const Pixel& p1, const Pixel& p2) {
-    return {std::min(255, p1.b + p2.b), std::min(255, p1.g + p2.g), std::min(255, p1.r + p2.r)};
+    return {static_cast<unsigned char>(std::min(255, p1.b + p2.b)),
+            static_cast<unsigned char>(std::min(255, p1.g + p2.g)),
+            static_cast<unsigned char>(std::min(255, p1.r + p2.r))};
 }
 
 Pixel overlay(const Pixel& p1, const Pixel& p2) {
@@ -114,153 +114,100 @@ Pixel overlay(const Pixel& p1, const Pixel& p2) {
     return result;
 }
 
-// Task-specific Functions
-void task1(const std::string& output) {
-    Image layer1, pattern1;
-    layer1.load("input/layer1.tga");
-    pattern1.load("input/pattern1.tga");
-
-    Image result = layer1;
-    for (int i = 0; i < layer1.pixels.size(); ++i) {
-        result.pixels[i] = multiply(layer1.pixels[i], pattern1.pixels[i]);
+// Command-line task functions
+void performMultiply(Image &trackingImg, const std::string &filename) {
+    Image otherImg;
+    if (!otherImg.load(filename)) { return; }
+    for (size_t i = 0; i < trackingImg.pixels.size(); ++i) {
+        trackingImg.pixels[i] = multiply(trackingImg.pixels[i], otherImg.pixels[i]);
     }
-    result.save(output);
 }
 
-void task2(const std::string& output) {
-    Image layer2, car;
-    layer2.load("input/layer2.tga");
-    car.load("input/car.tga");
-
-    Image result = car;
-    for (int i = 0; i < car.pixels.size(); ++i) {
-        result.pixels[i] = subtract(car.pixels[i], layer2.pixels[i]);
+void performScreen(Image &trackingImg, const std::string &filename) {
+    Image otherImg;
+    if (!otherImg.load(filename)) { return; }
+    for (size_t i = 0; i < trackingImg.pixels.size(); ++i) {
+        trackingImg.pixels[i] = screen(trackingImg.pixels[i], otherImg.pixels[i]);
     }
-    result.save(output);
 }
 
-void task3(const std::string& output) {
-    Image layer1, pattern2, text;
-    layer1.load("input/layer1.tga");
-    pattern2.load("input/pattern2.tga");
-
-    Image temp_result = layer1;
-    for (int i = 0; i < layer1.pixels.size(); ++i) {
-        temp_result.pixels[i] = multiply(layer1.pixels[i], pattern2.pixels[i]);
+void performAddGreen(Image &img, int value) {
+    for (auto &pixel : img.pixels) {
+        pixel.g = std::min(255, pixel.g + value);
     }
-
-    text.load("input/text.tga");
-    for (int i = 0; i < text.pixels.size(); ++i) {
-        temp_result.pixels[i] = screen(temp_result.pixels[i], text.pixels[i]);
-    }
-    temp_result.save(output);
 }
 
-void task4(const std::string& output) {
-    Image layer2, circles, pattern2;
-    layer2.load("input/layer2.tga");
-    circles.load("input/circles.tga");
-
-    Image temp_result = layer2;
-    for (int i = 0; i < layer2.pixels.size(); ++i) {
-        temp_result.pixels[i] = multiply(layer2.pixels[i], circles.pixels[i]);
+void performScaleRed(Image &img, int value) {
+    for (auto &pixel : img.pixels) {
+        pixel.r = std::min(255, pixel.r * value);
     }
-
-    pattern2.load("input/pattern2.tga");
-    for (int i = 0; i < pattern2.pixels.size(); ++i) {
-        temp_result.pixels[i] = subtract(temp_result.pixels[i], pattern2.pixels[i]);
-    }
-    temp_result.save(output);
 }
 
-void task5(const std::string& output) {
-    Image layer1, pattern1;
-    layer1.load("input/layer1.tga");
-    pattern1.load("input/pattern1.tga");
-
-    Image result = layer1;
-    for (int i = 0; i < layer1.pixels.size(); ++i) {
-        result.pixels[i] = overlay(layer1.pixels[i], pattern1.pixels[i]);
-    }
-    result.save(output);
-}
-
-void task6(const std::string& output) {
-    Image car;
-    car.load("input/car.tga");
-
-    for (Pixel& p : car.pixels) {
-        p.g = std::min(255, p.g + 200);
-    }
-    car.save(output);
-}
-
-void task7(const std::string& output) {
-    Image car;
-    car.load("input/car.tga");
-
-    for (Pixel& p : car.pixels) {
-        p.r = std::min(255, p.r * 4);
-        p.b = 0;
-    }
-    car.save(output);
-}
-
-void task8(const std::string& output_r, const std::string& output_g, const std::string& output_b) {
-    Image car;
-    car.load("input/car.tga");
-
-    Image red = car, green = car, blue = car;
-    for (int i = 0; i < car.pixels.size(); ++i) {
-        red.pixels[i] = {car.pixels[i].r, car.pixels[i].r, car.pixels[i].r};
-        green.pixels[i] = {car.pixels[i].g, car.pixels[i].g, car.pixels[i].g};
-        blue.pixels[i] = {car.pixels[i].b, car.pixels[i].b, car.pixels[i].b};
-    }
-    red.save(output_r);
-    green.save(output_g);
-    blue.save(output_b);
-}
-
-void task9(const std::string& output) {
-    Image layer_red, layer_green, layer_blue;
-    layer_red.load("input/layer_red.tga");
-    layer_green.load("input/layer_green.tga");
-    layer_blue.load("input/layer_blue.tga");
-
-    Image result = layer_red;
-    for (int i = 0; i < result.pixels.size(); ++i) {
-        result.pixels[i] = {layer_blue.pixels[i].b, layer_green.pixels[i].g, layer_red.pixels[i].r};
-    }
-    result.save(output);
-}
-
-void task10(const std::string& output) {
-    Image text2;
-    text2.load("input/text2.tga");
-
-    Image result = text2;
-    int width = text2.width;
-    int height = text2.height;
-    for (int y = 0; y < height; ++y) {
+void performFlip(Image &img) {
+    int width = img.width;
+    int height = img.height;
+    for (int y = 0; y < height / 2; ++y) {
         for (int x = 0; x < width; ++x) {
-            result.pixels[y * width + x] = text2.pixels[(height - y - 1) * width + (width - x - 1)];
+            std::swap(img.pixels[y * width + x], img.pixels[(height - y - 1) * width + x]);
         }
     }
-    result.save(output);
 }
 
-int main() {
-    task1("output/part1.tga");
-    task2("output/part2.tga");
-    task3("output/part3.tga");
-    task4("output/part4.tga");
-    task5("output/part5.tga");
-    task6("output/part6.tga");
-    task7("output/part7.tga");
-    task8("output/part8_r.tga", "output/part8_g.tga", "output/part8_b.tga");
-    task9("output/part9.tga");
-    task10("output/part10.tga");
+// Print help message
+void printHelp() {
+    std::cout << "Project 2: Image Processing, Fall 2023\n\n"
+              << "Usage:\n\t./project2.out [output] [firstImage] [method] [...]\n";
+}
 
-    std::cout << "All tasks completed successfully!" << std::endl;
+// Main function
+int main(int argc, char *argv[]) {
+    if (argc < 2 || (argc == 2 && std::string(argv[1]) == "--help")) {
+        printHelp();
+        return 0;
+    }
+
+    std::string outputFilename = argv[1];
+    if (outputFilename.find(".tga") == std::string::npos) {
+        std::cerr << "Invalid file name.\n";
+        return 1;
+    }
+
+    std::string firstImageFilename = argv[2];
+    Image trackingImg;
+    if (!trackingImg.load(firstImageFilename)) {
+        std::cerr << "File does not exist.\n";
+        return 1;
+    }
+
+    for (int i = 3; i < argc; ++i) {
+        std::string method = argv[i];
+        if (method == "multiply") {
+            if (++i >= argc) { std::cerr << "Missing argument.\n"; return 1; }
+            performMultiply(trackingImg, argv[i]);
+        } else if (method == "screen") {
+            if (++i >= argc) { std::cerr << "Missing argument.\n"; return 1; }
+            performScreen(trackingImg, argv[i]);
+        } else if (method == "addgreen") {
+            if (++i >= argc) { std::cerr << "Missing argument.\n"; return 1; }
+            int value = std::stoi(argv[i]);
+            performAddGreen(trackingImg, value);
+        } else if (method == "scalered") {
+            if (++i >= argc) { std::cerr << "Missing argument.\n"; return 1; }
+            int value = std::stoi(argv[i]);
+            performScaleRed(trackingImg, value);
+        } else if (method == "flip") {
+            performFlip(trackingImg);
+        } else {
+            std::cerr << "Invalid method name.\n";
+            return 1;
+        }
+    }
+
+    if (!trackingImg.save(outputFilename)) {
+        std::cerr << "Error writing output file.\n";
+        return 1;
+    }
+
+    std::cout << "Processing completed successfully.\n";
     return 0;
 }
