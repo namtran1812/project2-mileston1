@@ -147,6 +147,28 @@ void screen(Image& image, const Image& layer) {
     }
 }
 
+void only_red(Image& image) {
+    for (Pixel& p : image.pixels) {
+        p.g = 0;
+        p.b = 0;
+    }
+}
+
+void only_green(Image& image) {
+    for (Pixel& p : image.pixels) {
+        p.r = 0;
+        p.b = 0;
+    }
+}
+
+void combine(Image& image, const Image& r, const Image& g, const Image& b) {
+    for (size_t i = 0; i < image.pixels.size(); ++i) {
+        image.pixels[i].r = r.pixels[i].r;
+        image.pixels[i].g = g.pixels[i].g;
+        image.pixels[i].b = b.pixels[i].b;
+    }
+}
+
 void printHelp() {
     std::cout << "Project 2: Image Processing, Fall 2024\n"
               << "\nUsage:\n\t./project2.out [output] [firstImage] [method] [...]\n";
@@ -329,6 +351,28 @@ int main(int argc, char* argv[]) {
                 return 1;
             }
             screen(trackingImage, layer);
+        }
+        else if (method == "onlyred") {
+            only_red(trackingImage);
+        }
+        else if (method == "onlygreen") {
+            only_green(trackingImage);
+        }
+        else if (method == "combine") {
+            if (argIndex + 3 >= argc) {
+                std::cerr << "Missing argument for combine method." << std::endl;
+                return 1;
+            }
+            std::string rFile = argv[++argIndex];
+            std::string gFile = argv[++argIndex];
+            std::string bFile = argv[++argIndex];
+            
+            Image r, g, b;
+            if (!r.load(rFile) || !g.load(gFile) || !b.load(bFile)) {
+                std::cerr << "Invalid argument, file does not exist." << std::endl;
+                return 1;
+            }
+            combine(trackingImage, r, g, b);
         }
         else {
             std::cerr << "Invalid method name." << std::endl;
