@@ -105,6 +105,18 @@ void scale_blue_channel(Image& image, int factor) {
     }
 }
 
+void scale_green_channel(Image& image, int factor) {
+    for (Pixel& p : image.pixels) {
+        p.g = static_cast<unsigned char>(std::min(255, p.g * factor));
+    }
+}
+
+void scale_red_channel(Image& image, int factor) {
+    for (Pixel& p : image.pixels) {
+        p.r = static_cast<unsigned char>(std::min(255, p.r * factor));
+    }
+}
+
 void printHelp() {
     std::cout << "Project 2: Image Processing, Fall 2024\n"
               << "\nUsage:\n\t./project2.out [output] [firstImage] [method] [...]\n";
@@ -205,6 +217,32 @@ int main(int argc, char* argv[]) {
             try {
                 int factor = std::stoi(argv[++argIndex]);
                 scale_blue_channel(trackingImage, factor);
+            } catch (const std::invalid_argument&) {
+                std::cerr << "Invalid argument, expected number." << std::endl;
+                return 1;
+            }
+        }
+        else if (method == "scalegreen") {
+            if (argIndex + 1 >= argc) {
+                std::cerr << "Missing argument." << std::endl;
+                return 1;
+            }
+            try {
+                int factor = std::stoi(argv[++argIndex]);
+                scale_green_channel(trackingImage, factor);
+            } catch (const std::invalid_argument&) {
+                std::cerr << "Invalid argument, expected number." << std::endl;
+                return 1;
+            }
+        }
+        else if (method == "scalered") {
+            if (argIndex + 1 >= argc) {
+                std::cerr << "Missing argument." << std::endl;
+                return 1;
+            }
+            try {
+                int factor = std::stoi(argv[++argIndex]);
+                scale_red_channel(trackingImage, factor);
             } catch (const std::invalid_argument&) {
                 std::cerr << "Invalid argument, expected number." << std::endl;
                 return 1;
