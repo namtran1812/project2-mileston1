@@ -62,7 +62,7 @@ bool Image::save(const std::string& filename) const {
     header[14] = height & 0xFF;
     header[15] = (height >> 8) & 0xFF;
     header[16] = 24; // 24 bits per pixel (RGB)
-    header[17] = 0x20; // Lower-left origin for compatibility with tests
+    header[17] = 0x00; // Set origin to top-left as per test requirements
 
     file.write(reinterpret_cast<const char*>(header), sizeof(header));
     file.write(reinterpret_cast<const char*>(pixels.data()), pixels.size() * sizeof(Pixel));
@@ -78,9 +78,9 @@ bool Image::save(const std::string& filename) const {
 
 Pixel multiply(const Pixel& p1, const Pixel& p2) {
     Pixel result;
-    result.b = static_cast<unsigned char>(std::round((p1.b / 255.0) * (p2.b / 255.0) * 255));
-    result.g = static_cast<unsigned char>(std::round((p1.g / 255.0) * (p2.g / 255.0) * 255));
-    result.r = static_cast<unsigned char>(std::round((p1.r / 255.0) * (p2.r / 255.0) * 255));
+    result.b = static_cast<unsigned char>((p1.b * p2.b) / 255);
+    result.g = static_cast<unsigned char>((p1.g * p2.g) / 255);
+    result.r = static_cast<unsigned char>((p1.r * p2.r) / 255);
     return result;
 }
 
@@ -116,17 +116,17 @@ void scale_channel(Image& image, int factor, char channel) {
 
 void overlay(Image& image, const Image& layer) {
     for (size_t i = 0; i < image.pixels.size(); ++i) {
-        image.pixels[i].b = static_cast<unsigned char>((image.pixels[i].b / 255.0) * (layer.pixels[i].b / 255.0) * 255);
-        image.pixels[i].g = static_cast<unsigned char>((image.pixels[i].g / 255.0) * (layer.pixels[i].g / 255.0) * 255);
-        image.pixels[i].r = static_cast<unsigned char>((image.pixels[i].r / 255.0) * (layer.pixels[i].r / 255.0) * 255);
+        image.pixels[i].b = static_cast<unsigned char>((image.pixels[i].b + layer.pixels[i].b) - (image.pixels[i].b * layer.pixels[i].b) / 255);
+        image.pixels[i].g = static_cast<unsigned char>((image.pixels[i].g + layer.pixels[i].g) - (image.pixels[i].g * layer.pixels[i].g) / 255);
+        image.pixels[i].r = static_cast<unsigned char>((image.pixels[i].r + layer.pixels[i].r) - (image.pixels[i].r * layer.pixels[i].r) / 255);
     }
 }
 
 void screen(Image& image, const Image& layer) {
     for (size_t i = 0; i < image.pixels.size(); ++i) {
-        image.pixels[i].b = static_cast<unsigned char>(255 - (1 - image.pixels[i].b / 255.0) * (1 - layer.pixels[i].b / 255.0) * 255);
-        image.pixels[i].g = static_cast<unsigned char>(255 - (1 - image.pixels[i].g / 255.0) * (1 - layer.pixels[i].g / 255.0) * 255);
-        image.pixels[i].r = static_cast<unsigned char>(255 - (1 - image.pixels[i].r / 255.0) * (1 - layer.pixels[i].r / 255.0) * 255);
+        image.pixels[i].b = static_cast<unsigned char>(255 - ((255 - image.pixels[i].b) * (255 - layer.pixels[i].b)) / 255);
+        image.pixels[i].g = static_cast<unsigned char>(255 - ((255 - image.pixels[i].g) * (255 - layer.pixels[i].g)) / 255);
+        image.pixels[i].r = static_cast<unsigned char>(255 - ((255 - image.pixels[i].r) * (255 - layer.pixels[i].r)) / 255);
     }
 }
 
