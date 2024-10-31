@@ -15,19 +15,17 @@ clean:
 
 tasks: $(TARGET)
 	# Tasks 11-13
-	./$(TARGET) output/task11.tga input/circles.tga multiply input/layer1.tga
-	./$(TARGET) output/task12.tga input/layer1.tga flip
-	./$(TARGET) output/task13.tga input/layer1.tga subtract input/layer2.tga
+	./$(TARGET) output/part11.tga input/circles.tga multiply input/layer1.tga
+	./$(TARGET) output/part12.tga input/layer1.tga flip
+	./$(TARGET) output/part13.tga input/layer1.tga subtract input/layer2.tga
 	
-	# Tasks 14-16
-	./$(TARGET) output/task14.tga input/car.tga flip flip flip flip
-	./$(TARGET) output/task15.tga input/car.tga subtract input/layer1.tga multiply input/circles.tga flip
-	./$(TARGET) output/task16.tga input/car.tga scaleblue 3 addred 100 scalegreen 0
-
-	# Tasks 17-20 (use placeholder filenames)
-	./$(TARGET) output/task17.tga input/sample1.tga your_method_here arg
-	./$(TARGET) output/task18.tga input/sample2.tga your_method_here arg
-	./$(TARGET) output/task19.tga input/sample3.tga your_method_here arg
-	./$(TARGET) output/task20.tga input/sample4.tga your_method_here arg
+	# Tasks 14-20
+	./$(TARGET) output/part14.tga input/car.tga flip flip flip flip
+	./$(TARGET) output/part15.tga input/car.tga subtract input/layer1.tga multiply input/circles.tga flip
+	./$(TARGET) output/part16.tga input/car.tga scaleblue 3 addred 100 scalegreen 0
+	./$(TARGET) output/part17.tga input/car.tga addred 30 addgreen 20 addblue 10
+	./$(TARGET) output/part18.tga input/car.tga scaleblue 2 combine input/layer1.tga
+	./$(TARGET) output/part19.tga input/car.tga overlay input/layer2.tga subtract input/layer1.tga
+	./$(TARGET) output/part20.tga input/car.tga screen input/layer1.tga
 
 .PHONY: all run clean build tasks
