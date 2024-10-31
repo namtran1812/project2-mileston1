@@ -107,7 +107,6 @@ void add_channel(Image& image, int value, char channel) {
     }
 }
 
-// Updated scale functions
 void scale_channel(Image& image, int factor, char channel) {
     for (Pixel& p : image.pixels) {
         if (channel == 'r') p.r = static_cast<unsigned char>(std::min(255, p.r * factor));
@@ -118,9 +117,9 @@ void scale_channel(Image& image, int factor, char channel) {
 
 void overlay(Image& image, const Image& layer) {
     for (size_t i = 0; i < image.pixels.size(); ++i) {
-        image.pixels[i].b = static_cast<unsigned char>((image.pixels[i].b / 255.0) * (layer.pixels[i].b / 255.0) * 255);
-        image.pixels[i].g = static_cast<unsigned char>((image.pixels[i].g / 255.0) * (layer.pixels[i].g / 255.0) * 255);
-        image.pixels[i].r = static_cast<unsigned char>((image.pixels[i].r / 255.0) * (layer.pixels[i].r / 255.0) * 255);
+        image.pixels[i].b = static_cast<unsigned char>(std::min(255.0, (image.pixels[i].b / 255.0) * (layer.pixels[i].b / 255.0) * 255));
+        image.pixels[i].g = static_cast<unsigned char>(std::min(255.0, (image.pixels[i].g / 255.0) * (layer.pixels[i].g / 255.0) * 255));
+        image.pixels[i].r = static_cast<unsigned char>(std::min(255.0, (image.pixels[i].r / 255.0) * (layer.pixels[i].r / 255.0) * 255));
     }
 }
 
