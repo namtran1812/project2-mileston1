@@ -76,7 +76,7 @@ bool Image::save(const std::string& filename) const {
     return true;
 }
 
-// Manipulation Functions (Additions & Modifications based on errors)
+// Manipulation Functions
 Pixel multiply(const Pixel& p1, const Pixel& p2) {
     Pixel result;
     result.b = static_cast<unsigned char>(std::round((p1.b / 255.0) * (p2.b / 255.0) * 255));
@@ -107,7 +107,6 @@ void add_channel(Image& image, int value, char channel) {
     }
 }
 
-// Updated scale functions
 void scale_channel(Image& image, int factor, char channel) {
     for (Pixel& p : image.pixels) {
         if (channel == 'r') p.r = static_cast<unsigned char>(std::min(255, p.r * factor));
@@ -147,6 +146,11 @@ void only_green(Image& image) {
 }
 
 void combine(Image& image, const Image& r, const Image& g, const Image& b) {
+    if (r.width != g.width || g.width != b.width || b.width != image.width ||
+        r.height != g.height || g.height != b.height || b.height != image.height) {
+        std::cerr << "Error: Dimension mismatch among the input images for combine operation." << std::endl;
+        exit(1);
+    }
     for (size_t i = 0; i < image.pixels.size(); ++i) {
         image.pixels[i].r = r.pixels[i].r;
         image.pixels[i].g = g.pixels[i].g;
