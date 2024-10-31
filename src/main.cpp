@@ -3,8 +3,8 @@
 #include <vector>
 #include <algorithm>
 #include <cmath>
-#include <cstring>  // For strcmp
-#include <cstdlib>  // For std::stoi
+#include <cstring>
+#include <cstdlib>
 
 struct Pixel {
     unsigned char b, g, r;
@@ -62,7 +62,7 @@ bool Image::save(const std::string& filename) const {
     header[14] = height & 0xFF;
     header[15] = (height >> 8) & 0xFF;
     header[16] = 24; // 24 bits per pixel (RGB)
-    header[17] = 0x20; // Image descriptor byte (sets origin in the upper left)
+    header[17] = 0x00; // Image descriptor byte, sets origin in lower-left
 
     file.write(reinterpret_cast<const char*>(header), sizeof(header));
     file.write(reinterpret_cast<const char*>(pixels.data()), pixels.size() * sizeof(Pixel));
@@ -76,7 +76,7 @@ bool Image::save(const std::string& filename) const {
     return true;
 }
 
-// Manipulation Functions
+// Manipulation Functions (Additions & Modifications based on errors)
 Pixel multiply(const Pixel& p1, const Pixel& p2) {
     Pixel result;
     result.b = static_cast<unsigned char>(std::round((p1.b / 255.0) * (p2.b / 255.0) * 255));
@@ -86,49 +86,33 @@ Pixel multiply(const Pixel& p1, const Pixel& p2) {
 }
 
 Pixel subtract(const Pixel& p1, const Pixel& p2) {
-    return {std::max(0, p1.b - p2.b), std::max(0, p1.g - p2.g), std::max(0, p1.r - p2.r)};
+    return {static_cast<unsigned char>(std::max(0, p1.b - p2.b)),
+            static_cast<unsigned char>(std::max(0, p1.g - p2.g)),
+            static_cast<unsigned char>(std::max(0, p1.r - p2.r))};
 }
 
 void flipImage(Image& image) {
     std::reverse(image.pixels.begin(), image.pixels.end());
 }
 
-void add_red_channel(Image& image, int value) {
+void add_channel(Image& image, int value, char channel) {
     for (Pixel& p : image.pixels) {
-        int newRed = p.r + value;
-        p.r = static_cast<unsigned char>(std::min(255, std::max(0, newRed)));
+        if (channel == 'r') {
+            p.r = static_cast<unsigned char>(std::min(255, std::max(0, p.r + value)));
+        } else if (channel == 'g') {
+            p.g = static_cast<unsigned char>(std::min(255, std::max(0, p.g + value)));
+        } else if (channel == 'b') {
+            p.b = static_cast<unsigned char>(std::min(255, std::max(0, p.b + value)));
+        }
     }
 }
 
-void add_green_channel(Image& image, int value) {
+// Updated scale functions
+void scale_channel(Image& image, int factor, char channel) {
     for (Pixel& p : image.pixels) {
-        int newGreen = p.g + value;
-        p.g = static_cast<unsigned char>(std::min(255, std::max(0, newGreen)));
-    }
-}
-
-void add_blue_channel(Image& image, int value) {
-    for (Pixel& p : image.pixels) {
-        int newBlue = p.b + value;
-        p.b = static_cast<unsigned char>(std::min(255, std::max(0, newBlue)));
-    }
-}
-
-void scale_blue_channel(Image& image, int factor) {
-    for (Pixel& p : image.pixels) {
-        p.b = static_cast<unsigned char>(std::min(255, p.b * factor));
-    }
-}
-
-void scale_green_channel(Image& image, int factor) {
-    for (Pixel& p : image.pixels) {
-        p.g = static_cast<unsigned char>(std::min(255, p.g * factor));
-    }
-}
-
-void scale_red_channel(Image& image, int factor) {
-    for (Pixel& p : image.pixels) {
-        p.r = static_cast<unsigned char>(std::min(255, p.r * factor));
+        if (channel == 'r') p.r = static_cast<unsigned char>(std::min(255, p.r * factor));
+        else if (channel == 'g') p.g = static_cast<unsigned char>(std::min(255, p.g * factor));
+        else if (channel == 'b') p.b = static_cast<unsigned char>(std::min(255, p.b * factor));
     }
 }
 
@@ -256,7 +240,7 @@ int main(int argc, char* argv[]) {
             }
             try {
                 int value = std::stoi(argv[++argIndex]);
-                add_red_channel(trackingImage, value);
+                add_channel(trackingImage, value, 'r');
             } catch (const std::invalid_argument&) {
                 std::cerr << "Invalid argument, expected number." << std::endl;
                 return 1;
@@ -269,7 +253,7 @@ int main(int argc, char* argv[]) {
             }
             try {
                 int value = std::stoi(argv[++argIndex]);
-                add_green_channel(trackingImage, value);
+                add_channel(trackingImage, value, 'g');
             } catch (const std::invalid_argument&) {
                 std::cerr << "Invalid argument, expected number." << std::endl;
                 return 1;
@@ -282,7 +266,7 @@ int main(int argc, char* argv[]) {
             }
             try {
                 int value = std::stoi(argv[++argIndex]);
-                add_blue_channel(trackingImage, value);
+                add_channel(trackingImage, value, 'b');
             } catch (const std::invalid_argument&) {
                 std::cerr << "Invalid argument, expected number." << std::endl;
                 return 1;
@@ -295,7 +279,7 @@ int main(int argc, char* argv[]) {
             }
             try {
                 int factor = std::stoi(argv[++argIndex]);
-                scale_blue_channel(trackingImage, factor);
+                scale_channel(trackingImage, factor, 'b');
             } catch (const std::invalid_argument&) {
                 std::cerr << "Invalid argument, expected number." << std::endl;
                 return 1;
@@ -308,7 +292,7 @@ int main(int argc, char* argv[]) {
             }
             try {
                 int factor = std::stoi(argv[++argIndex]);
-                scale_green_channel(trackingImage, factor);
+                scale_channel(trackingImage, factor, 'g');
             } catch (const std::invalid_argument&) {
                 std::cerr << "Invalid argument, expected number." << std::endl;
                 return 1;
@@ -321,7 +305,7 @@ int main(int argc, char* argv[]) {
             }
             try {
                 int factor = std::stoi(argv[++argIndex]);
-                scale_red_channel(trackingImage, factor);
+                scale_channel(trackingImage, factor, 'r');
             } catch (const std::invalid_argument&) {
                 std::cerr << "Invalid argument, expected number." << std::endl;
                 return 1;
