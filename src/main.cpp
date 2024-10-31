@@ -99,6 +99,20 @@ void add_red_channel(Image& image, int value) {
     }
 }
 
+void add_green_channel(Image& image, int value) {
+    for (Pixel& p : image.pixels) {
+        int newGreen = p.g + value;
+        p.g = static_cast<unsigned char>(std::min(255, std::max(0, newGreen)));
+    }
+}
+
+void add_blue_channel(Image& image, int value) {
+    for (Pixel& p : image.pixels) {
+        int newBlue = p.b + value;
+        p.b = static_cast<unsigned char>(std::min(255, std::max(0, newBlue)));
+    }
+}
+
 void scale_blue_channel(Image& image, int factor) {
     for (Pixel& p : image.pixels) {
         p.b = static_cast<unsigned char>(std::min(255, p.b * factor));
@@ -114,6 +128,22 @@ void scale_green_channel(Image& image, int factor) {
 void scale_red_channel(Image& image, int factor) {
     for (Pixel& p : image.pixels) {
         p.r = static_cast<unsigned char>(std::min(255, p.r * factor));
+    }
+}
+
+void overlay(Image& image, const Image& layer) {
+    for (size_t i = 0; i < image.pixels.size(); ++i) {
+        image.pixels[i].b = static_cast<unsigned char>((image.pixels[i].b / 255.0) * (layer.pixels[i].b / 255.0) * 255);
+        image.pixels[i].g = static_cast<unsigned char>((image.pixels[i].g / 255.0) * (layer.pixels[i].g / 255.0) * 255);
+        image.pixels[i].r = static_cast<unsigned char>((image.pixels[i].r / 255.0) * (layer.pixels[i].r / 255.0) * 255);
+    }
+}
+
+void screen(Image& image, const Image& layer) {
+    for (size_t i = 0; i < image.pixels.size(); ++i) {
+        image.pixels[i].b = static_cast<unsigned char>(255 - (1 - image.pixels[i].b / 255.0) * (1 - layer.pixels[i].b / 255.0) * 255);
+        image.pixels[i].g = static_cast<unsigned char>(255 - (1 - image.pixels[i].g / 255.0) * (1 - layer.pixels[i].g / 255.0) * 255);
+        image.pixels[i].r = static_cast<unsigned char>(255 - (1 - image.pixels[i].r / 255.0) * (1 - layer.pixels[i].r / 255.0) * 255);
     }
 }
 
@@ -209,6 +239,32 @@ int main(int argc, char* argv[]) {
                 return 1;
             }
         }
+        else if (method == "addgreen") {
+            if (argIndex + 1 >= argc) {
+                std::cerr << "Missing argument." << std::endl;
+                return 1;
+            }
+            try {
+                int value = std::stoi(argv[++argIndex]);
+                add_green_channel(trackingImage, value);
+            } catch (const std::invalid_argument&) {
+                std::cerr << "Invalid argument, expected number." << std::endl;
+                return 1;
+            }
+        }
+        else if (method == "addblue") {
+            if (argIndex + 1 >= argc) {
+                std::cerr << "Missing argument." << std::endl;
+                return 1;
+            }
+            try {
+                int value = std::stoi(argv[++argIndex]);
+                add_blue_channel(trackingImage, value);
+            } catch (const std::invalid_argument&) {
+                std::cerr << "Invalid argument, expected number." << std::endl;
+                return 1;
+            }
+        }
         else if (method == "scaleblue") {
             if (argIndex + 1 >= argc) {
                 std::cerr << "Missing argument." << std::endl;
@@ -247,6 +303,32 @@ int main(int argc, char* argv[]) {
                 std::cerr << "Invalid argument, expected number." << std::endl;
                 return 1;
             }
+        }
+        else if (method == "overlay") {
+            if (argIndex + 1 >= argc) {
+                std::cerr << "Missing argument." << std::endl;
+                return 1;
+            }
+            std::string layerFile = argv[++argIndex];
+            Image layer;
+            if (!layer.load(layerFile)) {
+                std::cerr << "Invalid argument, file does not exist." << std::endl;
+                return 1;
+            }
+            overlay(trackingImage, layer);
+        }
+        else if (method == "screen") {
+            if (argIndex + 1 >= argc) {
+                std::cerr << "Missing argument." << std::endl;
+                return 1;
+            }
+            std::string layerFile = argv[++argIndex];
+            Image layer;
+            if (!layer.load(layerFile)) {
+                std::cerr << "Invalid argument, file does not exist." << std::endl;
+                return 1;
+            }
+            screen(trackingImage, layer);
         }
         else {
             std::cerr << "Invalid method name." << std::endl;
