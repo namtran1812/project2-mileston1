@@ -14,12 +14,10 @@ clean:
 	rm -f output/*.tga
 
 tasks: $(TARGET)
-	# Tasks 11-13
+	# Tasks 11-20 commands
 	./$(TARGET) output/part11.tga input/circles.tga multiply input/layer1.tga
 	./$(TARGET) output/part12.tga input/layer1.tga flip
 	./$(TARGET) output/part13.tga input/layer1.tga subtract input/layer2.tga
-	
-	# Tasks 14-20
 	./$(TARGET) output/part14.tga input/car.tga flip flip flip flip
 	./$(TARGET) output/part15.tga input/car.tga subtract input/layer1.tga multiply input/circles.tga flip
 	./$(TARGET) output/part16.tga input/car.tga scaleblue 3 addred 100 scalegreen 0
@@ -28,4 +26,4 @@ tasks: $(TARGET)
 	./$(TARGET) output/part19.tga input/car.tga overlay input/layer2.tga subtract input/layer1.tga
 	./$(TARGET) output/part20.tga input/car.tga screen input/layer1.tga onlygreen
 
-.PHONY: all run clean build tasks
+.PHONY: all run clean tasks
