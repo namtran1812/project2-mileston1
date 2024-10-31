@@ -1,5 +1,5 @@
 TARGET = project2.out
-SRCS = src/*.cpp 
+SRCS = src/*.cpp
 
 all: $(TARGET)
 
@@ -10,8 +10,8 @@ run: $(TARGET)
 	./$(TARGET)
 
 clean:
-	rm -f $(TARGET) 
-	rm -f output/*.tga  
+	rm -f $(TARGET)
+	rm -f output/*.tga
 
 tasks: $(TARGET)
 	# Tasks 11-13
