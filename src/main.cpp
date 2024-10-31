@@ -18,6 +18,10 @@ struct Image {
     bool save(const std::string& filename) const;
 };
 
+int clamp(int value, int min, int max) {
+    return (value < min) ? min : (value > max) ? max : value;
+}
+
 bool Image::load(const std::string& filename) {
     std::ifstream file(filename, std::ios::binary);
     if (!file.is_open()) {
@@ -79,9 +83,9 @@ bool Image::save(const std::string& filename) const {
 // Manipulation Functions
 Pixel multiply(const Pixel& p1, const Pixel& p2) {
     Pixel result;
-    result.b = static_cast<unsigned char>(std::clamp((p1.b / 255.0) * (p2.b / 255.0) * 255, 0.0, 255.0));
-    result.g = static_cast<unsigned char>(std::clamp((p1.g / 255.0) * (p2.g / 255.0) * 255, 0.0, 255.0));
-    result.r = static_cast<unsigned char>(std::clamp((p1.r / 255.0) * (p2.r / 255.0) * 255, 0.0, 255.0));
+    result.b = static_cast<unsigned char>(clamp(static_cast<int>((p1.b / 255.0) * (p2.b / 255.0) * 255), 0, 255));
+    result.g = static_cast<unsigned char>(clamp(static_cast<int>((p1.g / 255.0) * (p2.g / 255.0) * 255), 0, 255));
+    result.r = static_cast<unsigned char>(clamp(static_cast<int>((p1.r / 255.0) * (p2.r / 255.0) * 255), 0, 255));
     return result;
 }
 
@@ -117,9 +121,9 @@ void scale_channel(Image& image, int factor, char channel) {
 
 void overlay(Image& image, const Image& layer) {
     for (size_t i = 0; i < image.pixels.size(); ++i) {
-        image.pixels[i].b = static_cast<unsigned char>(std::clamp((image.pixels[i].b / 255.0) * (layer.pixels[i].b / 255.0) * 255, 0.0, 255.0));
-        image.pixels[i].g = static_cast<unsigned char>(std::clamp((image.pixels[i].g / 255.0) * (layer.pixels[i].g / 255.0) * 255, 0.0, 255.0));
-        image.pixels[i].r = static_cast<unsigned char>(std::clamp((image.pixels[i].r / 255.0) * (layer.pixels[i].r / 255.0) * 255, 0.0, 255.0));
+        image.pixels[i].b = static_cast<unsigned char>(clamp(static_cast<int>((image.pixels[i].b / 255.0) * (layer.pixels[i].b / 255.0) * 255), 0, 255));
+        image.pixels[i].g = static_cast<unsigned char>(clamp(static_cast<int>((image.pixels[i].g / 255.0) * (layer.pixels[i].g / 255.0) * 255), 0, 255));
+        image.pixels[i].r = static_cast<unsigned char>(clamp(static_cast<int>((image.pixels[i].r / 255.0) * (layer.pixels[i].r / 255.0) * 255), 0, 255));
     }
 }
 
