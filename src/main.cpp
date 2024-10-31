@@ -106,7 +106,7 @@ void scale_blue_channel(Image& image, int factor) {
 }
 
 void printHelp() {
-    std::cout << "Project 2: Image Processing, Fall 2023\n"
+    std::cout << "Project 2: Image Processing, Fall 2024\n"
               << "\nUsage:\n\t./project2.out [output] [firstImage] [method] [...]\n";
 }
 
@@ -117,13 +117,18 @@ int main(int argc, char* argv[]) {
     }
 
     std::string outputFilename = argv[1];
-    if (outputFilename.substr(outputFilename.size() - 4) != ".tga") {
+    if (outputFilename.size() < 4 || outputFilename.substr(outputFilename.size() - 4) != ".tga") {
         std::cerr << "Invalid file name." << std::endl;
         return 1;
     }
 
+    if (argc < 3) {
+        std::cerr << "Missing argument for input filename." << std::endl;
+        return 1;
+    }
+    
     std::string inputFilename = argv[2];
-    if (inputFilename.substr(inputFilename.size() - 4) != ".tga") {
+    if (inputFilename.size() < 4 || inputFilename.substr(inputFilename.size() - 4) != ".tga") {
         std::cerr << "Invalid file name." << std::endl;
         return 1;
     }
@@ -144,6 +149,10 @@ int main(int argc, char* argv[]) {
                 return 1;
             }
             std::string secondImageFile = argv[++argIndex];
+            if (secondImageFile.size() < 4 || secondImageFile.substr(secondImageFile.size() - 4) != ".tga") {
+                std::cerr << "Invalid argument, invalid file name." << std::endl;
+                return 1;
+            }
             Image secondImage;
             if (!secondImage.load(secondImageFile)) {
                 std::cerr << "Invalid argument, file does not exist." << std::endl;
@@ -159,6 +168,10 @@ int main(int argc, char* argv[]) {
                 return 1;
             }
             std::string secondImageFile = argv[++argIndex];
+            if (secondImageFile.size() < 4 || secondImageFile.substr(secondImageFile.size() - 4) != ".tga") {
+                std::cerr << "Invalid argument, invalid file name." << std::endl;
+                return 1;
+            }
             Image secondImage;
             if (!secondImage.load(secondImageFile)) {
                 std::cerr << "Invalid argument, file does not exist." << std::endl;
@@ -176,16 +189,26 @@ int main(int argc, char* argv[]) {
                 std::cerr << "Missing argument." << std::endl;
                 return 1;
             }
-            int value = std::stoi(argv[++argIndex]);
-            add_red_channel(trackingImage, value);
+            try {
+                int value = std::stoi(argv[++argIndex]);
+                add_red_channel(trackingImage, value);
+            } catch (const std::invalid_argument&) {
+                std::cerr << "Invalid argument, expected number." << std::endl;
+                return 1;
+            }
         }
         else if (method == "scaleblue") {
             if (argIndex + 1 >= argc) {
                 std::cerr << "Missing argument." << std::endl;
                 return 1;
             }
-            int factor = std::stoi(argv[++argIndex]);
-            scale_blue_channel(trackingImage, factor);
+            try {
+                int factor = std::stoi(argv[++argIndex]);
+                scale_blue_channel(trackingImage, factor);
+            } catch (const std::invalid_argument&) {
+                std::cerr << "Invalid argument, expected number." << std::endl;
+                return 1;
+            }
         }
         else {
             std::cerr << "Invalid method name." << std::endl;
