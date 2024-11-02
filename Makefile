@@ -2,15 +2,14 @@ CXX = g++
 CXXFLAGS = -std=c++11 -Wall
 TARGET = project2.out
 SRC = main.cpp TGAImage.cpp
-OBJ = $(SRC:.cpp=.o)
 
 all: $(TARGET)
 
-$(TARGET): $(OBJ)
-	$(CXX) $(CXXFLAGS) -o $(TARGET) $(OBJ)
+$(TARGET): $(SRC)
+	$(CXX) $(CXXFLAGS) -o $(TARGET) $(SRC)
 
 clean:
-	rm -f $(OBJ) $(TARGET)
+	rm -f $(TARGET)
 
 tasks: $(TARGET)
 	# Tasks 11-20 commands
