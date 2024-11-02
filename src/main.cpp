@@ -5,12 +5,13 @@
 #include <cmath>
 #include <cstring>
 #include <cstdlib>
-#include <filesystem> // For file existence check
 
+// Struct to represent a pixel with RGB channels
 struct Pixel {
     unsigned char b, g, r;
 };
 
+// Struct to represent an image, including pixel data and dimensions
 struct Image {
     int width, height;
     std::vector<Pixel> pixels;
@@ -19,6 +20,7 @@ struct Image {
     bool save(const std::string& filename) const;
 };
 
+// Loads a .tga file into the Image struct
 bool Image::load(const std::string& filename) {
     std::ifstream file(filename, std::ios::binary);
     if (!file.is_open()) {
@@ -49,6 +51,7 @@ bool Image::load(const std::string& filename) {
     return true;
 }
 
+// Saves the Image struct as a .tga file
 bool Image::save(const std::string& filename) const {
     std::ofstream file(filename, std::ios::binary);
     if (!file.is_open()) {
@@ -63,7 +66,7 @@ bool Image::save(const std::string& filename) const {
     header[14] = height & 0xFF;
     header[15] = (height >> 8) & 0xFF;
     header[16] = 24; // 24 bits per pixel (RGB)
-    header[17] = 0x20; // Image descriptor byte, sets origin in upper-left and possibly alpha
+    header[17] = 0x20; // Image descriptor byte, sets origin in upper-left
 
     file.write(reinterpret_cast<const char*>(header), sizeof(header));
     file.write(reinterpret_cast<const char*>(pixels.data()), pixels.size() * sizeof(Pixel));
@@ -77,16 +80,57 @@ bool Image::save(const std::string& filename) const {
     return true;
 }
 
-// Validate .tga file extension and file existence
+// Utility function to check if a file has a .tga extension and exists
 bool isValidTGAFile(const std::string& filename) {
-    return filename.size() > 4 && filename.substr(filename.size() - 4) == ".tga" && std::filesystem::exists(filename);
+    if (filename.size() < 4 || filename.substr(filename.size() - 4) != ".tga") {
+        return false;
+    }
+    std::ifstream file(filename);
+    return file.good();
 }
 
+// Pixel manipulation functions
+Pixel multiply(const Pixel& p1, const Pixel& p2) {
+    return {static_cast<unsigned char>((p1.b * p2.b) / 255),
+            static_cast<unsigned char>((p1.g * p2.g) / 255),
+            static_cast<unsigned char>((p1.r * p2.r) / 255)};
+}
+
+Pixel subtract(const Pixel& p1, const Pixel& p2) {
+    return {static_cast<unsigned char>(std::max(0, p1.b - p2.b)),
+            static_cast<unsigned char>(std::max(0, p1.g - p2.g)),
+            static_cast<unsigned char>(std::max(0, p1.r - p2.r))};
+}
+
+void overlay(Image& image, const Image& layer) {
+    for (size_t i = 0; i < image.pixels.size(); ++i) {
+        image.pixels[i] = multiply(image.pixels[i], layer.pixels[i]);
+    }
+}
+
+void add_channel(Image& image, int value, char channel) {
+    for (auto& pixel : image.pixels) {
+        if (channel == 'r') pixel.r = std::clamp(pixel.r + value, 0, 255);
+        else if (channel == 'g') pixel.g = std::clamp(pixel.g + value, 0, 255);
+        else if (channel == 'b') pixel.b = std::clamp(pixel.b + value, 0, 255);
+    }
+}
+
+void scale_channel(Image& image, int factor, char channel) {
+    for (auto& pixel : image.pixels) {
+        if (channel == 'r') pixel.r = std::min(pixel.r * factor, 255);
+        else if (channel == 'g') pixel.g = std::min(pixel.g * factor, 255);
+        else if (channel == 'b') pixel.b = std::min(pixel.b * factor, 255);
+    }
+}
+
+// Prints help message for command-line usage
 void printHelp() {
     std::cout << "Project 2: Image Processing, Fall 2024\n"
               << "\nUsage:\n\t./project2.out [output] [firstImage] [method] [...]\n";
 }
 
+// Main function to process command-line arguments and perform operations
 int main(int argc, char* argv[]) {
     if (argc < 2 || (argc == 2 && strcmp(argv[1], "--help") == 0)) {
         printHelp();
@@ -135,6 +179,7 @@ int main(int argc, char* argv[]) {
                 std::cerr << "Invalid argument, file does not exist." << std::endl;
                 return 1;
             }
+
             if (method == "multiply") {
                 for (size_t i = 0; i < trackingImage.pixels.size(); ++i) {
                     trackingImage.pixels[i] = multiply(trackingImage.pixels[i], secondImage.pixels[i]);
