@@ -70,7 +70,7 @@ bool Image::save(const std::string& filename) const {
     header[14] = height & 0xFF;
     header[15] = (height >> 8) & 0xFF;
     header[16] = 24; // 24 bits per pixel (RGB)
-    header[17] = 0x00; // Image descriptor byte, set origin at lower-left (consistent with tests)
+    header[17] = 0x20; // Image descriptor byte, set origin at lower-left (consistent with tests)
 
     file.write(reinterpret_cast<const char*>(header), sizeof(header));
     file.write(reinterpret_cast<const char*>(pixels.data()), pixels.size() * sizeof(Pixel));
