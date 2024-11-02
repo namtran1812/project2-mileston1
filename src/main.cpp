@@ -5,7 +5,7 @@
 #include <cmath>
 #include <cstring>
 
-// Clamp function for C++11 compatibility
+// Manual clamp function for C++11 compatibility
 inline int clamp(int value, int minVal, int maxVal) {
     return std::max(minVal, std::min(value, maxVal));
 }
@@ -85,15 +85,17 @@ bool Image::save(const std::string& filename) const {
 }
 
 // Utility function to check if a file has a .tga extension and exists
-bool isValidTGAFile(const std::string& filename) {
+bool isValidTGAFile(const std::string& filename, bool checkExistence = true) {
     if (filename.size() < 4 || filename.substr(filename.size() - 4) != ".tga") {
         std::cerr << "Invalid file name." << std::endl;
         return false;
     }
-    std::ifstream file(filename);
-    if (!file.good()) {
-        std::cerr << "File does not exist." << std::endl;
-        return false;
+    if (checkExistence) {
+        std::ifstream file(filename);
+        if (!file.good()) {
+            std::cerr << "File does not exist." << std::endl;
+            return false;
+        }
     }
     return true;
 }
@@ -147,7 +149,7 @@ int main(int argc, char* argv[]) {
     }
 
     std::string outputFilename = argv[1];
-    if (!isValidTGAFile(outputFilename)) {
+    if (!isValidTGAFile(outputFilename, false)) {
         return 1;
     }
 
