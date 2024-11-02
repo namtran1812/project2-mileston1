@@ -6,15 +6,11 @@ OBJ = $(SRC:.cpp=.o)
 
 all: $(TARGET)
 
-$(TARGET): $(SRCS)
-	g++ -std=c++11 -o $(TARGET) $(SRCS)
-
-run: $(TARGET)
-	./$(TARGET)
+$(TARGET): $(OBJ)
+	$(CXX) $(CXXFLAGS) -o $(TARGET) $(OBJ)
 
 clean:
-	rm -f $(TARGET)
-	rm -f output/*.tga
+	rm -f $(OBJ) $(TARGET)
 
 tasks: $(TARGET)
 	# Tasks 11-20 commands
