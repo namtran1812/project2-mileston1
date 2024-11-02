@@ -5,17 +5,14 @@
 #include <algorithm>
 #include <cstring> // Needed for strcmp
 
-// Clamp function for C++11 compatibility
 inline int clamp(int value, int minVal, int maxVal) {
     return std::max(minVal, std::min(value, maxVal));
 }
 
-// Struct to represent a pixel with RGB channels
 struct Pixel {
     unsigned char b, g, r;
 };
 
-// Struct to represent an image, including pixel data and dimensions
 struct Image {
     int width, height;
     std::vector<Pixel> pixels;
@@ -24,7 +21,6 @@ struct Image {
     bool save(const std::string& filename) const;
 };
 
-// Loads a .tga file into the Image struct
 bool Image::load(const std::string& filename) {
     std::ifstream file(filename, std::ios::binary);
     if (!file.is_open()) {
@@ -55,7 +51,6 @@ bool Image::load(const std::string& filename) {
     return true;
 }
 
-// Saves the Image struct as a .tga file with correct header settings
 bool Image::save(const std::string& filename) const {
     std::ofstream file(filename, std::ios::binary);
     if (!file.is_open()) {
@@ -64,13 +59,13 @@ bool Image::save(const std::string& filename) const {
     }
 
     unsigned char header[18] = {0};
-    header[2] = 2; // Uncompressed true-color image
+    header[2] = 2;
     header[12] = width & 0xFF;
     header[13] = (width >> 8) & 0xFF;
     header[14] = height & 0xFF;
     header[15] = (height >> 8) & 0xFF;
-    header[16] = 24; // 24 bits per pixel (RGB)
-    header[17] = 0x00; // Image descriptor byte, origin at lower-left
+    header[16] = 24;
+    header[17] = 0x20;
 
     file.write(reinterpret_cast<const char*>(header), sizeof(header));
     file.write(reinterpret_cast<const char*>(pixels.data()), pixels.size() * sizeof(Pixel));
@@ -84,7 +79,6 @@ bool Image::save(const std::string& filename) const {
     return true;
 }
 
-// Utility function to check if a file has a .tga extension and exists
 bool isValidTGAFile(const std::string& filename, bool checkExistence = true) {
     if (filename.size() < 4 || filename.substr(filename.size() - 4) != ".tga") {
         std::cerr << "Invalid file name." << std::endl;
@@ -100,7 +94,6 @@ bool isValidTGAFile(const std::string& filename, bool checkExistence = true) {
     return true;
 }
 
-// Pixel manipulation functions
 Pixel multiply(const Pixel& p1, const Pixel& p2) {
     return {static_cast<unsigned char>((p1.b * p2.b) / 255),
             static_cast<unsigned char>((p1.g * p2.g) / 255),
@@ -135,13 +128,11 @@ void scale_channel(Image& image, int factor, char channel) {
     }
 }
 
-// Prints help message for command-line usage
 void printHelp() {
     std::cout << "Project 2: Image Processing, Fall 2024\n"
               << "\nUsage:\n\t./project2.out [output] [firstImage] [method] [...]\n";
 }
 
-// Main function to process command-line arguments and perform operations
 int main(int argc, char* argv[]) {
     if (argc < 2 || (argc == 2 && strcmp(argv[1], "--help") == 0)) {
         printHelp();
