@@ -4,7 +4,8 @@
 #include <vector>
 #include <cstring>
 #include <cstdlib>
-#include "Image.h"  // Assuming Image class is defined for TGA files and manipulations
+#include <algorithm> // Added for std::all_of
+#include "Image.h"   // Assuming Image class is defined for TGA files and manipulations
 
 // Prints the help message
 void printHelp() {
@@ -86,15 +87,19 @@ int main(int argc, char* argv[]) {
 
     // Validate input (source) file name
     std::string sourceFile = argv[2];
-    if (sourceFile.find(".tga") == std::string::npos || !fileExists(sourceFile)) {
+    if (sourceFile.find(".tga") == std::string::npos) {
         std::cerr << "Invalid file name.\n";
+        return 1;
+    }
+    if (!fileExists(sourceFile)) {
+        std::cerr << "File does not exist.\n";
         return 1;
     }
 
     // Load the initial image
     Image trackingImage;
     if (!trackingImage.load(sourceFile)) {
-        std::cerr << "Invalid argument, file does not exist.\n";
+        std::cerr << "File does not exist.\n";
         return 1;
     }
 
