@@ -4,7 +4,11 @@
 #include <algorithm>
 #include <cmath>
 #include <cstring>
-#include <cstdlib>
+
+// Manual clamp function for C++11 compatibility
+inline int clamp(int value, int minVal, int maxVal) {
+    return std::max(minVal, std::min(value, maxVal));
+}
 
 // Struct to represent a pixel with RGB channels
 struct Pixel {
@@ -110,9 +114,9 @@ void overlay(Image& image, const Image& layer) {
 
 void add_channel(Image& image, int value, char channel) {
     for (auto& pixel : image.pixels) {
-        if (channel == 'r') pixel.r = std::clamp(pixel.r + value, 0, 255);
-        else if (channel == 'g') pixel.g = std::clamp(pixel.g + value, 0, 255);
-        else if (channel == 'b') pixel.b = std::clamp(pixel.b + value, 0, 255);
+        if (channel == 'r') pixel.r = clamp(pixel.r + value, 0, 255);
+        else if (channel == 'g') pixel.g = clamp(pixel.g + value, 0, 255);
+        else if (channel == 'b') pixel.b = clamp(pixel.b + value, 0, 255);
     }
 }
 
