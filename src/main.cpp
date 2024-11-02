@@ -1,7 +1,9 @@
+
 #include "TGAImage.h"
 #include <iostream>
 #include <string>
 #include <filesystem>
+#include <cctype>
 
 bool isTGAFile(const std::string &filename) {
     return filename.size() > 4 && filename.substr(filename.size() - 4) == ".tga";
@@ -94,15 +96,25 @@ int main(int argc, char *argv[]) {
         other.readFromFile(otherFile);
         image.overlay(other);
     } else if (method == "addcolor" && argc == 7) {
-        int r = std::stoi(argv[4]);
-        int g = std::stoi(argv[5]);
-        int b = std::stoi(argv[6]);
-        image.addColor(r, g, b);
+        try {
+            int r = std::stoi(argv[4]);
+            int g = std::stoi(argv[5]);
+            int b = std::stoi(argv[6]);
+            image.addColor(r, g, b);
+        } catch (...) {
+            std::cerr << "Invalid argument, expected number.\n";
+            return 1;
+        }
     } else if (method == "scalecolor" && argc == 7) {
-        int r = std::stoi(argv[4]);
-        int g = std::stoi(argv[5]);
-        int b = std::stoi(argv[6]);
-        image.scaleColor(r, g, b);
+        try {
+            int r = std::stoi(argv[4]);
+            int g = std::stoi(argv[5]);
+            int b = std::stoi(argv[6]);
+            image.scaleColor(r, g, b);
+        } catch (...) {
+            std::cerr << "Invalid argument, expected number.\n";
+            return 1;
+        }
     } else if (method == "extract" && argc == 5) {
         std::string channel = argv[4];
         if (channel != "red" && channel != "green" && channel != "blue") {
