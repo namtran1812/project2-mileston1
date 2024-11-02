@@ -1,15 +1,17 @@
-CXX = g++
-CXXFLAGS = -std=c++11 -Wall
 TARGET = project2.out
-SRC = main.cpp TGAImage.cpp
+SRCS = src/*.cpp
 
 all: $(TARGET)
 
-$(TARGET): $(SRC)
-	$(CXX) $(CXXFLAGS) -o $(TARGET) $(SRC)
+$(TARGET): $(SRCS)
+	g++ -std=c++11 -o $(TARGET) $(SRCS)
+
+run: $(TARGET)
+	./$(TARGET)
 
 clean:
 	rm -f $(TARGET)
+	rm -f output/*.tga
 
 tasks: $(TARGET)
 	# Tasks 11-20 commands
