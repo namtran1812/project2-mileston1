@@ -57,7 +57,6 @@ bool Image::save(const std::string& filename) const {
 
     unsigned char header[18] = {0};
     header[2] = 2; // Uncompressed true-color image
-    header[11] = 0x00;
     header[12] = width & 0xFF;
     header[13] = (width >> 8) & 0xFF;
     header[14] = height & 0xFF;
