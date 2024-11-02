@@ -1,5 +1,8 @@
+CXX = g++
+CXXFLAGS = -std=c++11 -Wall
 TARGET = project2.out
-SRCS = src/*.cpp
+SRC = main.cpp TGAImage.cpp
+OBJ = $(SRC:.cpp=.o)
 
 all: $(TARGET)
 
