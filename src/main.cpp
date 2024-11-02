@@ -3,7 +3,7 @@
 #include <string>
 
 void printHelp() {
-    std::cout << "Project 2: Image Processing, Fall 2023\n\n";
+    std::cout << "Project 2: Image Processing, Fall 2024\n\n";
     std::cout << "Usage:\n\t./project2.out [output] [input] [method] [...]\n\n";
     std::cout << "Methods:\n";
     std::cout << "  multiply [file]     : Multiply with another image\n";
