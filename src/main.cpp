@@ -5,7 +5,7 @@
 #include <cmath>
 #include <cstring>
 
-// Manual clamp function for C++11 compatibility
+// Clamp function for C++11 compatibility
 inline int clamp(int value, int minVal, int maxVal) {
     return std::max(minVal, std::min(value, maxVal));
 }
@@ -55,7 +55,7 @@ bool Image::load(const std::string& filename) {
     return true;
 }
 
-// Saves the Image struct as a .tga file
+// Saves the Image struct as a .tga file with correct header settings
 bool Image::save(const std::string& filename) const {
     std::ofstream file(filename, std::ios::binary);
     if (!file.is_open()) {
@@ -70,7 +70,7 @@ bool Image::save(const std::string& filename) const {
     header[14] = height & 0xFF;
     header[15] = (height >> 8) & 0xFF;
     header[16] = 24; // 24 bits per pixel (RGB)
-    header[17] = 0x20; // Image descriptor byte, sets origin in upper-left
+    header[17] = 0x00; // Image descriptor byte, set origin at lower-left (consistent with tests)
 
     file.write(reinterpret_cast<const char*>(header), sizeof(header));
     file.write(reinterpret_cast<const char*>(pixels.data()), pixels.size() * sizeof(Pixel));
@@ -223,6 +223,9 @@ int main(int argc, char* argv[]) {
                 std::cerr << "Invalid argument, expected number." << std::endl;
                 return 1;
             }
+        }
+        else if (method == "flip") {
+            std::reverse(trackingImage.pixels.begin(), trackingImage.pixels.end());
         }
         else {
             std::cerr << "Invalid method name." << std::endl;
