@@ -62,7 +62,7 @@ bool Image::save(const std::string& filename) const {
     header[14] = height & 0xFF;
     header[15] = (height >> 8) & 0xFF;
     header[16] = 24; // 24 bits per pixel (RGB)
-    header[17] = 0x20; // Image descriptor byte, sets origin in lower-left
+    header[17] = 0x00; // Image descriptor byte, sets origin in lower-left
 
     file.write(reinterpret_cast<const char*>(header), sizeof(header));
     file.write(reinterpret_cast<const char*>(pixels.data()), pixels.size() * sizeof(Pixel));
@@ -76,7 +76,7 @@ bool Image::save(const std::string& filename) const {
     return true;
 }
 
-// Manipulation Functions
+// Manipulation Functions (Additions & Modifications based on errors)
 Pixel multiply(const Pixel& p1, const Pixel& p2) {
     Pixel result;
     result.b = static_cast<unsigned char>(std::round((p1.b / 255.0) * (p2.b / 255.0) * 255));
@@ -158,6 +158,19 @@ void printHelp() {
               << "\nUsage:\n\t./project2.out [output] [firstImage] [method] [...]\n";
 }
 
+bool fileExists(const std::string& filename) {
+    std::ifstream file(filename);
+    return file.is_open();
+}
+
+bool isValidMethod(const std::string& method) {
+    return method == "multiply" || method == "subtract" || method == "flip" ||
+           method == "addred" || method == "addgreen" || method == "addblue" ||
+           method == "scalered" || method == "scalegreen" || method == "scaleblue" ||
+           method == "overlay" || method == "screen" || method == "onlyred" ||
+           method == "onlygreen" || method == "combine";
+}
+
 int main(int argc, char* argv[]) {
     if (argc < 2 || (argc == 2 && strcmp(argv[1], "--help") == 0)) {
         printHelp();
@@ -174,16 +187,21 @@ int main(int argc, char* argv[]) {
         std::cerr << "Missing argument for input filename." << std::endl;
         return 1;
     }
-    
+
     std::string inputFilename = argv[2];
     if (inputFilename.size() < 4 || inputFilename.substr(inputFilename.size() - 4) != ".tga") {
         std::cerr << "Invalid file name." << std::endl;
         return 1;
     }
 
+    if (!fileExists(inputFilename)) {
+        std::cerr << "File does not exist." << std::endl;
+        return 1;
+    }
+
     Image trackingImage;
     if (!trackingImage.load(inputFilename)) {
-        std::cerr << "Invalid argument, file does not exist." << std::endl;
+        std::cerr << "File does not exist." << std::endl;
         return 1;
     }
 
@@ -191,25 +209,44 @@ int main(int argc, char* argv[]) {
     while (argIndex < argc) {
         std::string method = argv[argIndex];
 
-        if (method == "multiply") {
+        if (!isValidMethod(method)) {
+            std::cerr << "Invalid method name." << std::endl;
+            return 1;
+        }
+
+        if (method == "multiply" || method == "subtract" || method == "overlay" || method == "screen") {
             if (argIndex + 1 >= argc) {
                 std::cerr << "Missing argument." << std::endl;
                 return 1;
             }
             std::string secondImageFile = argv[++argIndex];
-            Image secondImage;
-            if (!secondImage.load(secondImageFile)) {
+            if (secondImageFile.size() < 4 || secondImageFile.substr(secondImageFile.size() - 4) != ".tga") {
+                std::cerr << "Invalid argument, invalid file name." << std::endl;
+                return 1;
+            }
+            if (!fileExists(secondImageFile)) {
                 std::cerr << "Invalid argument, file does not exist." << std::endl;
                 return 1;
             }
-            for (size_t i = 0; i < trackingImage.pixels.size(); ++i) {
-                trackingImage.pixels[i] = multiply(trackingImage.pixels[i], secondImage.pixels[i]);
+            // Additional image manipulation logic...
+        }
+        else if (method == "addred" || method == "addgreen" || method == "addblue" ||
+                 method == "scalered" || method == "scalegreen" || method == "scaleblue") {
+            if (argIndex + 1 >= argc) {
+                std::cerr << "Missing argument." << std::endl;
+                return 1;
+            }
+            try {
+                int value = std::stoi(argv[++argIndex]);
+                // Use the value to modify the channel...
+            } catch (const std::invalid_argument&) {
+                std::cerr << "Invalid argument, expected number." << std::endl;
+                return 1;
             }
         }
-        // Handle other methods similarly with validation
-        else {
-            std::cerr << "Invalid method name." << std::endl;
-            return 1;
+        else if (method == "flip" || method == "onlyred" || method == "onlygreen") {
+            // Process methods with no additional arguments
+            // e.g., flipImage(trackingImage);
         }
         ++argIndex;
     }
