@@ -5,7 +5,7 @@
 #include <cmath>
 #include <cstring>
 
-// Manual clamp function for C++11 compatibility
+// Clamp function for C++11 compatibility
 inline int clamp(int value, int minVal, int maxVal) {
     return std::max(minVal, std::min(value, maxVal));
 }
@@ -28,7 +28,7 @@ struct Image {
 bool Image::load(const std::string& filename) {
     std::ifstream file(filename, std::ios::binary);
     if (!file.is_open()) {
-        std::cerr << "Error: Could not open file " << filename << std::endl;
+        std::cerr << "File does not exist." << std::endl;
         return false;
     }
 
@@ -87,10 +87,15 @@ bool Image::save(const std::string& filename) const {
 // Utility function to check if a file has a .tga extension and exists
 bool isValidTGAFile(const std::string& filename) {
     if (filename.size() < 4 || filename.substr(filename.size() - 4) != ".tga") {
+        std::cerr << "Invalid file name." << std::endl;
         return false;
     }
     std::ifstream file(filename);
-    return file.good();
+    if (!file.good()) {
+        std::cerr << "File does not exist." << std::endl;
+        return false;
+    }
+    return true;
 }
 
 // Pixel manipulation functions
@@ -143,7 +148,6 @@ int main(int argc, char* argv[]) {
 
     std::string outputFilename = argv[1];
     if (!isValidTGAFile(outputFilename)) {
-        std::cerr << "Invalid file name." << std::endl;
         return 1;
     }
 
@@ -154,13 +158,11 @@ int main(int argc, char* argv[]) {
 
     std::string inputFilename = argv[2];
     if (!isValidTGAFile(inputFilename)) {
-        std::cerr << "Invalid argument, file does not exist." << std::endl;
         return 1;
     }
 
     Image trackingImage;
     if (!trackingImage.load(inputFilename)) {
-        std::cerr << "File does not exist." << std::endl;
         return 1;
     }
 
@@ -175,12 +177,10 @@ int main(int argc, char* argv[]) {
             }
             std::string secondImageFile = argv[++argIndex];
             if (!isValidTGAFile(secondImageFile)) {
-                std::cerr << "Invalid argument, file does not exist." << std::endl;
                 return 1;
             }
             Image secondImage;
             if (!secondImage.load(secondImageFile)) {
-                std::cerr << "Invalid argument, file does not exist." << std::endl;
                 return 1;
             }
 
