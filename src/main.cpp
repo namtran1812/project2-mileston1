@@ -3,7 +3,6 @@
 #include <iostream>
 #include <string>
 #include <filesystem>
-#include <cctype>
 
 bool isTGAFile(const std::string &filename) {
     return filename.size() > 4 && filename.substr(filename.size() - 4) == ".tga";
