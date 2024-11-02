@@ -70,7 +70,7 @@ bool Image::save(const std::string& filename) const {
     header[14] = height & 0xFF;
     header[15] = (height >> 8) & 0xFF;
     header[16] = 24; // 24 bits per pixel (RGB)
-    header[17] = 0x20; // Image descriptor byte, set origin at lower-left (consistent with tests)
+    header[17] = 0x20; // Image descriptor byte, origin at lower-left
 
     file.write(reinterpret_cast<const char*>(header), sizeof(header));
     file.write(reinterpret_cast<const char*>(pixels.data()), pixels.size() * sizeof(Pixel));
@@ -129,9 +129,9 @@ void add_channel(Image& image, int value, char channel) {
 
 void scale_channel(Image& image, int factor, char channel) {
     for (auto& pixel : image.pixels) {
-        if (channel == 'r') pixel.r = std::min(pixel.r * factor, 255);
-        else if (channel == 'g') pixel.g = std::min(pixel.g * factor, 255);
-        else if (channel == 'b') pixel.b = std::min(pixel.b * factor, 255);
+        if (channel == 'r') pixel.r = clamp(pixel.r * factor, 0, 255);
+        else if (channel == 'g') pixel.g = clamp(pixel.g * factor, 0, 255);
+        else if (channel == 'b') pixel.b = clamp(pixel.b * factor, 0, 255);
     }
 }
 
