@@ -62,9 +62,7 @@ bool Image::save(const std::string& filename) const {
     header[14] = height & 0xFF;
     header[15] = (height >> 8) & 0xFF;
     header[16] = 24; // 24 bits per pixel (RGB)
-
-    // Set header[17] based on the expected descriptor byte (0x20 or 0x00)
-    header[17] = 0x20; // Use 0x00 if specified in certain test cases
+    header[17] = 0x00; // Set image descriptor byte to 0x00 as expected in tasks
 
     file.write(reinterpret_cast<const char*>(header), sizeof(header));
     file.write(reinterpret_cast<const char*>(pixels.data()), pixels.size() * sizeof(Pixel));
