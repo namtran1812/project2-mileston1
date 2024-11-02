@@ -5,6 +5,7 @@
 #include <cmath>
 #include <cstring>
 #include <cstdlib>
+#include <filesystem>
 
 struct Pixel {
     unsigned char b, g, r;
@@ -177,8 +178,8 @@ int main(int argc, char* argv[]) {
     }
     
     std::string inputFilename = argv[2];
-    if (inputFilename.size() < 4 || inputFilename.substr(inputFilename.size() - 4) != ".tga") {
-        std::cerr << "Invalid file name." << std::endl;
+    if (inputFilename.size() < 4 || inputFilename.substr(inputFilename.size() - 4) != ".tga" || !std::filesystem::exists(inputFilename)) {
+        std::cerr << "Invalid argument, file does not exist." << std::endl;
         return 1;
     }
 
@@ -192,14 +193,14 @@ int main(int argc, char* argv[]) {
     while (argIndex < argc) {
         std::string method = argv[argIndex];
 
-        if (method == "multiply") {
+        if (method == "multiply" || method == "subtract" || method == "overlay" || method == "combine") {
             if (argIndex + 1 >= argc) {
                 std::cerr << "Missing argument." << std::endl;
                 return 1;
             }
             std::string secondImageFile = argv[++argIndex];
-            if (secondImageFile.size() < 4 || secondImageFile.substr(secondImageFile.size() - 4) != ".tga") {
-                std::cerr << "Invalid argument, invalid file name." << std::endl;
+            if (secondImageFile.size() < 4 || secondImageFile.substr(secondImageFile.size() - 4) != ".tga" || !std::filesystem::exists(secondImageFile)) {
+                std::cerr << "Invalid argument, file does not exist." << std::endl;
                 return 1;
             }
             Image secondImage;
@@ -207,157 +208,44 @@ int main(int argc, char* argv[]) {
                 std::cerr << "Invalid argument, file does not exist." << std::endl;
                 return 1;
             }
-            for (size_t i = 0; i < trackingImage.pixels.size(); ++i) {
-                trackingImage.pixels[i] = multiply(trackingImage.pixels[i], secondImage.pixels[i]);
+
+            if (method == "multiply") {
+                for (size_t i = 0; i < trackingImage.pixels.size(); ++i) {
+                    trackingImage.pixels[i] = multiply(trackingImage.pixels[i], secondImage.pixels[i]);
+                }
+            } else if (method == "subtract") {
+                for (size_t i = 0; i < trackingImage.pixels.size(); ++i) {
+                    trackingImage.pixels[i] = subtract(trackingImage.pixels[i], secondImage.pixels[i]);
+                }
+            } else if (method == "overlay") {
+                overlay(trackingImage, secondImage);
             }
         }
-        else if (method == "subtract") {
-            if (argIndex + 1 >= argc) {
-                std::cerr << "Missing argument." << std::endl;
-                return 1;
-            }
-            std::string secondImageFile = argv[++argIndex];
-            if (secondImageFile.size() < 4 || secondImageFile.substr(secondImageFile.size() - 4) != ".tga") {
-                std::cerr << "Invalid argument, invalid file name." << std::endl;
-                return 1;
-            }
-            Image secondImage;
-            if (!secondImage.load(secondImageFile)) {
-                std::cerr << "Invalid argument, file does not exist." << std::endl;
-                return 1;
-            }
-            for (size_t i = 0; i < trackingImage.pixels.size(); ++i) {
-                trackingImage.pixels[i] = subtract(trackingImage.pixels[i], secondImage.pixels[i]);
-            }
-        }
-        else if (method == "flip") {
-            flipImage(trackingImage);
-        }
-        else if (method == "addred") {
+        else if (method == "addred" || method == "addgreen" || method == "addblue") {
             if (argIndex + 1 >= argc) {
                 std::cerr << "Missing argument." << std::endl;
                 return 1;
             }
             try {
                 int value = std::stoi(argv[++argIndex]);
-                add_channel(trackingImage, value, 'r');
+                add_channel(trackingImage, value, method.back()); // last char as channel ('r', 'g', 'b')
             } catch (const std::invalid_argument&) {
                 std::cerr << "Invalid argument, expected number." << std::endl;
                 return 1;
             }
         }
-        else if (method == "addgreen") {
-            if (argIndex + 1 >= argc) {
-                std::cerr << "Missing argument." << std::endl;
-                return 1;
-            }
-            try {
-                int value = std::stoi(argv[++argIndex]);
-                add_channel(trackingImage, value, 'g');
-            } catch (const std::invalid_argument&) {
-                std::cerr << "Invalid argument, expected number." << std::endl;
-                return 1;
-            }
-        }
-        else if (method == "addblue") {
-            if (argIndex + 1 >= argc) {
-                std::cerr << "Missing argument." << std::endl;
-                return 1;
-            }
-            try {
-                int value = std::stoi(argv[++argIndex]);
-                add_channel(trackingImage, value, 'b');
-            } catch (const std::invalid_argument&) {
-                std::cerr << "Invalid argument, expected number." << std::endl;
-                return 1;
-            }
-        }
-        else if (method == "scaleblue") {
+        else if (method == "scaleblue" || method == "scalegreen" || method == "scalered") {
             if (argIndex + 1 >= argc) {
                 std::cerr << "Missing argument." << std::endl;
                 return 1;
             }
             try {
                 int factor = std::stoi(argv[++argIndex]);
-                scale_channel(trackingImage, factor, 'b');
+                scale_channel(trackingImage, factor, method.back());
             } catch (const std::invalid_argument&) {
                 std::cerr << "Invalid argument, expected number." << std::endl;
                 return 1;
             }
-        }
-        else if (method == "scalegreen") {
-            if (argIndex + 1 >= argc) {
-                std::cerr << "Missing argument." << std::endl;
-                return 1;
-            }
-            try {
-                int factor = std::stoi(argv[++argIndex]);
-                scale_channel(trackingImage, factor, 'g');
-            } catch (const std::invalid_argument&) {
-                std::cerr << "Invalid argument, expected number." << std::endl;
-                return 1;
-            }
-        }
-        else if (method == "scalered") {
-            if (argIndex + 1 >= argc) {
-                std::cerr << "Missing argument." << std::endl;
-                return 1;
-            }
-            try {
-                int factor = std::stoi(argv[++argIndex]);
-                scale_channel(trackingImage, factor, 'r');
-            } catch (const std::invalid_argument&) {
-                std::cerr << "Invalid argument, expected number." << std::endl;
-                return 1;
-            }
-        }
-        else if (method == "overlay") {
-            if (argIndex + 1 >= argc) {
-                std::cerr << "Missing argument." << std::endl;
-                return 1;
-            }
-            std::string layerFile = argv[++argIndex];
-            Image layer;
-            if (!layer.load(layerFile)) {
-                std::cerr << "Invalid argument, file does not exist." << std::endl;
-                return 1;
-            }
-            overlay(trackingImage, layer);
-        }
-        else if (method == "screen") {
-            if (argIndex + 1 >= argc) {
-                std::cerr << "Missing argument." << std::endl;
-                return 1;
-            }
-            std::string layerFile = argv[++argIndex];
-            Image layer;
-            if (!layer.load(layerFile)) {
-                std::cerr << "Invalid argument, file does not exist." << std::endl;
-                return 1;
-            }
-            screen(trackingImage, layer);
-        }
-        else if (method == "onlyred") {
-            only_red(trackingImage);
-        }
-        else if (method == "onlygreen") {
-            only_green(trackingImage);
-        }
-        else if (method == "combine") {
-            if (argIndex + 3 >= argc) {
-                std::cerr << "Missing argument for combine method." << std::endl;
-                return 1;
-            }
-            std::string rFile = argv[++argIndex];
-            std::string gFile = argv[++argIndex];
-            std::string bFile = argv[++argIndex];
-            
-            Image r, g, b;
-            if (!r.load(rFile) || !g.load(gFile) || !b.load(bFile)) {
-                std::cerr << "Invalid argument, file does not exist." << std::endl;
-                return 1;
-            }
-            combine(trackingImage, r, g, b);
         }
         else {
             std::cerr << "Invalid method name." << std::endl;
