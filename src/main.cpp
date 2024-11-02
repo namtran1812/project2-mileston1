@@ -62,7 +62,33 @@ bool Image::save(const std::string& filename, unsigned char imageDescriptor = 0x
     header[14] = height & 0xFF;
     header[15] = (height >> 8) & 0xFF;
     header[16] = 24; // 24 bits per pixel (RGB)
-    header[17] = imageDescriptor; // Dynamically set descriptor based on the parameter
+    bool Image::save(const std::string& filename, unsigned char imageDescriptor = 0x00) const {
+    std::ofstream file(filename, std::ios::binary);
+    if (!file.is_open()) {
+        std::cerr << "Error: Could not open file for writing " << filename << std::endl;
+        return false;
+    }
+
+    unsigned char header[18] = {0};
+    header[2] = 2; // Uncompressed true-color image
+    header[12] = width & 0xFF;
+    header[13] = (width >> 8) & 0xFF;
+    header[14] = height & 0xFF;
+    header[15] = (height >> 8) & 0xFF;
+    header[16] = 24; // 24 bits per pixel (RGB)
+    header[17] = setAlphaBit ? 0x20 : 0x00;
+
+    file.write(reinterpret_cast<const char*>(header), sizeof(header));
+    file.write(reinterpret_cast<const char*>(pixels.data()), pixels.size() * sizeof(Pixel));
+
+    if (!file) {
+        std::cerr << "Error: Failed to write pixel data to " << filename << std::endl;
+        return false;
+    }
+
+    file.close();
+    return true;
+}
 
     file.write(reinterpret_cast<const char*>(header), sizeof(header));
     file.write(reinterpret_cast<const char*>(pixels.data()), pixels.size() * sizeof(Pixel));
