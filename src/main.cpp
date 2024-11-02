@@ -3,6 +3,7 @@
 #include <vector>
 #include <string>
 #include <algorithm>
+#include <cstring> // Needed for strcmp
 
 // Clamp function for C++11 compatibility
 inline int clamp(int value, int minVal, int maxVal) {
