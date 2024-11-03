@@ -60,18 +60,18 @@ int main(int argc, char* argv[]) {
         return 0;
     }
 
-    // Validate output file name
+     // Validate output file name
     if (!validOutputFileName(argv[1])) {
         return 0;
     }
 
     // Validate input file name (initial tracking image)
-    if (argc < 3 || !validFileName(argv[2], true)) {  // Pass `true` to apply specific error message for second argument
+    if (argc < 3 || !validFileName(argv[2])) {
         return 0;
     } else {
         trackingImage.readData(argv[2], trackingImage);
     }
-
+    
     int index = 3;
     while (index < argc) {
         string method = argv[index];
