@@ -54,7 +54,7 @@ bool Image::load(const std::string& filename) {
     return true;
 }
 
-bool Image::save(const std::string& filename, bool useAlphaBit = false) const {
+bool Image::save(const std::string& filename, bool useAlphaBit) const {
     std::ofstream file(filename, std::ios::binary);
     if (!file.is_open()) {
         std::cerr << "Error: Could not open file for writing " << filename << std::endl;
