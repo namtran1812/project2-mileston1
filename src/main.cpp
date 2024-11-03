@@ -57,13 +57,6 @@ Picture first;
 int value;
 
 int main(int argc, char* argv[]) {
-    if (argc < 3) {
-        std::cerr << "Error: Insufficient arguments provided.
-";
-        return 1;
-    }
-    // Proceed with further argument checks
-    
     if (argc <= 1 || string(argv[1]) == "--help") {
         helpMessage();
         return 0;
