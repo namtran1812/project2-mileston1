@@ -12,23 +12,20 @@ void helpMessage() {
     cout << "\t./project2.out [output] [firstImage] [method] [...]" << endl;
 }
 
-bool validOutputFileName(string name) {
+bool validOutputFileName(const string& name) {
+    if (name.length() < 4) return false;  // Check if filename has at least four characters
     string lastFourCharacters = name.substr(name.length() - 4);
-    if (lastFourCharacters != ".tga"){
-        return false;
-    }
-    return true;
+    return lastFourCharacters == ".tga";
 }
 
-
-bool validFileName(string name) {
+bool validFileName(const string& name) {
+    if (name.length() < 4) return false;  // Check if filename has at least four characters
     string lastFourCharacters = name.substr(name.length() - 4);
-    if (lastFourCharacters != ".tga"){
+    if (lastFourCharacters != ".tga") {
         return false;
     }
     ifstream file(name, ios::binary);
-    
-    return true;
+    return file.is_open(); // Verify the file can be opened
 }
 
 bool isInt(string value) {
