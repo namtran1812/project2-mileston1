@@ -12,8 +12,12 @@ void helpMessage() {
     cout << "\t./project2.out [output] [firstImage] [method] [...]" << endl;
 }
 
+bool hasTgaExtension(const string& name) {
+    return name.size() >= 4 && name.substr(name.size() - 4) == ".tga";
+}
+
 bool validOutputFileName(const string& name) {
-    if (name.size() < 4 || name.substr(name.size() - 4) != ".tga") {
+    if (!hasTgaExtension(name)) {
         cout << "Invalid file name." << endl;
         return false;
     }
@@ -21,13 +25,13 @@ bool validOutputFileName(const string& name) {
 }
 
 bool validFileName(const string& name) {
-    if (name.size() < 4 || name.substr(name.size() - 4) != ".tga") {
-        cout << "Invalid argument, invalid file name." << endl;
+    if (!hasTgaExtension(name)) {
+        cout << "Invalid file name." << endl;
         return false;
     }
     ifstream file(name, ios::binary);
     if (!file.is_open()) {
-        cout << "Invalid argument, file does not exist." << endl;
+        cout << "File does not exist." << endl;
         return false;
     }
     return true;
