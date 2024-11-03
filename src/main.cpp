@@ -21,7 +21,7 @@ struct Image {
     std::vector<Pixel> pixels;
 
     bool load(const std::string& filename);
-    bool save(const std::string& filename) const;
+    bool save(const std::string& filename, bool useAlphaBit = false) const;
 };
 
 bool Image::load(const std::string& filename) {
