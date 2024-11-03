@@ -12,16 +12,23 @@ void helpMessage() {
     cout << "\t./project2.out [output] [firstImage] [method] [...]" << endl;
 }
 
-bool validOutputFileName(const string& name) {
-    return name.length() >= 4 && name.substr(name.length() - 4) == ".tga";
+bool validOutputFileName(string name) {
+    string lastFourCharacters = name.substr(name.length() - 4);
+    if (lastFourCharacters != ".tga"){
+        return false;
+    }
+    return true;
 }
 
-bool validFileName(const string& name) {
-    if (name.length() < 4 || name.substr(name.length() - 4) != ".tga") {
-        return false;  // Check extension only
+
+bool validFileName(string name) {
+    string lastFourCharacters = name.substr(name.length() - 4);
+    if (lastFourCharacters != ".tga"){
+        return false;
     }
     ifstream file(name, ios::binary);
-    return file.is_open();  // Ensure file exists and is readable
+    
+    return true;
 }
 
 bool isInt(string value) {
