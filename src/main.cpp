@@ -380,8 +380,6 @@ int main(int argc, char* argv[]) {
         ++argIndex;
     }
 
-    bool useAlphaBit = (some_condition_for_tasks_17_to_20); // Set this to true or false as needed
-
     // Save with the correct header
     if (!trackingImage.save(outputFilename, useAlphaBit)) {
         std::cerr << "Error: Could not save file " << outputFilename << std::endl;
