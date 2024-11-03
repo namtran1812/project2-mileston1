@@ -43,6 +43,26 @@ bool isInt(const string& value) {
     }
 }
 
+bool readInitialImage(const string& fileName, Picture& image) {
+    // Check file extension
+    if (fileName.size() < 4 || fileName.substr(fileName.size() - 4) != ".tga") {
+        cout << "Invalid file name." << endl;
+        return false;
+    }
+
+    // Check if file exists
+    ifstream file(fileName, ios::binary);
+    if (!file.is_open()) {
+        cout << "File does not exist." << endl;
+        return false;
+    }
+    file.close();  // Close file after checking
+
+    // Attempt to read image data
+    image.readData(fileName, image);
+    return true;
+}
+
 // Assuming Picture and tgaimage functionalities are defined elsewhere
 Picture trackingImage;
 Picture top;
@@ -65,11 +85,9 @@ int main(int argc, char* argv[]) {
         return 0;
     }
 
-    // Validate input file name (initial tracking image)
-    if (argc < 3 || !validFileName(argv[2])) {
+    // Validate and read initial tracking image
+    if (argc < 3 || !readInitialImage(argv[2], trackingImage)) {
         return 0;
-    } else {
-        trackingImage.readData(argv[2], trackingImage);
     }
     
     int index = 3;
