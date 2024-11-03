@@ -13,19 +13,15 @@ void helpMessage() {
 }
 
 bool validOutputFileName(const string& name) {
-    if (name.length() < 4) return false;  // Check if filename has at least four characters
-    string lastFourCharacters = name.substr(name.length() - 4);
-    return lastFourCharacters == ".tga";
+    return name.length() >= 4 && name.substr(name.length() - 4) == ".tga";
 }
 
 bool validFileName(const string& name) {
-    if (name.length() < 4) return false;  // Ensure filename is at least 4 characters long
-    string lastFourCharacters = name.substr(name.length() - 4);
-    if (lastFourCharacters != ".tga") {
-        return false; // Check for .tga extension
+    if (name.length() < 4 || name.substr(name.length() - 4) != ".tga") {
+        return false;  // Check extension only
     }
     ifstream file(name, ios::binary);
-    return file.is_open(); // Confirm that the file can be opened
+    return file.is_open();  // Ensure file exists and is readable
 }
 
 bool isInt(string value) {
