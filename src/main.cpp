@@ -1,187 +1,229 @@
+
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <sstream>
 #include <vector>
-#include <stdexcept>
+#include "tgaimage.h"
 using namespace std;
 
-bool validOutputFileName(const string& name) {
-    // Ensure filename ends with ".tga" and is at least 4 characters
-    return name.length() >= 4 && name.substr(name.length() - 4) == ".tga";
+void helpMessage() {
+    cout << "Project 2: Image Processing, Fall 2024\n" << endl;
+    cout << "Usage:" << endl;
+    cout << "\t./project2.out [output] [firstImage] [method] [...]" << endl;
 }
 
-bool validFileName(const string& name) {
-    // Check for ".tga" extension and file existence
-    if (name.length() < 4 || name.substr(name.length() - 4) != ".tga") {
+bool validOutputFileName(string name) {
+    string lastFourCharacters = name.substr(name.length() - 4);
+    if (lastFourCharacters != ".tga"){
+        return false;
+    }
+    return true;
+}
+
+
+bool validFileName(string name) {
+    string lastFourCharacters = name.substr(name.length() - 4);
+    if (lastFourCharacters != ".tga"){
         return false;
     }
     ifstream file(name, ios::binary);
-    return file.is_open();  // Confirm that the file exists
+    
+    return true;
 }
 
-bool isInt(const string& value) {
+bool isInt(string value) {
     try {
-        stoi(value); // Attempt to convert to int
-        return true;
-    } catch (const invalid_argument&) {
+        value = stoi(value);
+    }
+    catch (invalid_argument) {
         return false;
     }
+    return true;
+
 }
 
-void validateArguments(int argc, char* argv[]) {
-    if (argc <= 1 || string(argv[1]) == "--help") {
-        cout << "Project 2: Image Processing, Fall 2024\nUsage:\n\t./project2.out [output] [firstImage] [method] [...]\n";
-        exit(0);
-    }
 
-    if (!validOutputFileName(argv[1])) {
-        cerr << "Invalid output file name.\n";
-        exit(1);
-    }
+Picture trackingImage;
 
-    if (argc <= 2 || !validFileName(argv[2])) {
-        cerr << "Invalid file name or file not found for initial image.\n";
-        exit(1);
-    }
-}
+Picture top;
+Picture bot;
+Picture outcome;
 
-class Pixel {
-public:
-    unsigned char blue;
-    unsigned char green;
-    unsigned char red;
+Picture red;
+Picture blue;
+Picture green;
 
-    Pixel() : blue(0), green(0), red(0) {}
-    Pixel(char b, char g, char r) : blue(b), green(g), red(r) {}
-};
-
-class Picture {
-public:
-    char idLength;
-    char colorMapType;
-    char dataTypeCode;
-    short colorMapOrigin;
-    short colorMapLength;
-    char colorMapDepth;
-    short xOrigin;
-    short yOrigin;
-    short width;
-    short height;
-    char bitsPerPixel;
-    char imageDescriptor;
-    vector<Pixel> pixels;
-
-    Picture() : idLength(0), colorMapType(0), dataTypeCode(0), colorMapOrigin(0), colorMapLength(0), 
-                colorMapDepth(0), xOrigin(0), yOrigin(0), width(0), height(0), bitsPerPixel(0), 
-                imageDescriptor(0) {}
-
-    void readData(const string& filePath) {
-        ifstream file(filePath, ios::in | ios::binary);
-        if (file.is_open()) {
-            file.read(reinterpret_cast<char*>(&idLength), sizeof(idLength));
-            file.read(reinterpret_cast<char*>(&colorMapType), sizeof(colorMapType));
-            file.read(reinterpret_cast<char*>(&dataTypeCode), sizeof(dataTypeCode));
-            file.read(reinterpret_cast<char*>(&colorMapOrigin), sizeof(colorMapOrigin));
-            file.read(reinterpret_cast<char*>(&colorMapLength), sizeof(colorMapLength));
-            file.read(reinterpret_cast<char*>(&colorMapDepth), sizeof(colorMapDepth));
-            file.read(reinterpret_cast<char*>(&xOrigin), sizeof(xOrigin));
-            file.read(reinterpret_cast<char*>(&yOrigin), sizeof(yOrigin));
-            file.read(reinterpret_cast<char*>(&width), sizeof(width));
-            file.read(reinterpret_cast<char*>(&height), sizeof(height));
-            file.read(reinterpret_cast<char*>(&bitsPerPixel), sizeof(bitsPerPixel));
-            file.read(reinterpret_cast<char*>(&imageDescriptor), sizeof(imageDescriptor));
-
-            int imageSize = width * height;
-            pixels.resize(imageSize);
-
-            for (int i = 0; i < imageSize; i++) {
-                file.read(reinterpret_cast<char*>(&pixels[i].blue), sizeof(pixels[i].blue));
-                file.read(reinterpret_cast<char*>(&pixels[i].green), sizeof(pixels[i].green));
-                file.read(reinterpret_cast<char*>(&pixels[i].red), sizeof(pixels[i].red));
-            }
-
-            file.close();
-        } else {
-            cout << "File not found.\n";
-            exit(1);
-        }
-    }
-
-    void writeData(const string& filePath) {
-        ofstream file(filePath, ios::out | ios::binary);
-        if (file.is_open()) {
-            file.write(reinterpret_cast<char*>(&idLength), sizeof(idLength));
-            file.write(reinterpret_cast<char*>(&colorMapType), sizeof(colorMapType));
-            file.write(reinterpret_cast<char*>(&dataTypeCode), sizeof(dataTypeCode));
-            file.write(reinterpret_cast<char*>(&colorMapOrigin), sizeof(colorMapOrigin));
-            file.write(reinterpret_cast<char*>(&colorMapLength), sizeof(colorMapLength));
-            file.write(reinterpret_cast<char*>(&colorMapDepth), sizeof(colorMapDepth));
-            file.write(reinterpret_cast<char*>(&xOrigin), sizeof(xOrigin));
-            file.write(reinterpret_cast<char*>(&yOrigin), sizeof(yOrigin));
-            file.write(reinterpret_cast<char*>(&width), sizeof(width));
-            file.write(reinterpret_cast<char*>(&height), sizeof(height));
-            file.write(reinterpret_cast<char*>(&bitsPerPixel), sizeof(bitsPerPixel));
-            file.write(reinterpret_cast<char*>(&imageDescriptor), sizeof(imageDescriptor));
-
-            int imageSize = width * height;
-            for (int i = 0; i < imageSize; i++) {
-                file.write(reinterpret_cast<char*>(&pixels[i].blue), sizeof(pixels[i].blue));
-                file.write(reinterpret_cast<char*>(&pixels[i].green), sizeof(pixels[i].green));
-                file.write(reinterpret_cast<char*>(&pixels[i].red), sizeof(pixels[i].red));
-            }
-
-            file.close();
-        } else {
-            cout << "Unable to open output file.\n";
-        }
-    }
-};
+Picture first;
+int value;
 
 int main(int argc, char* argv[]) {
-    // Argument validation before proceeding
-    validateArguments(argc, argv);
+    if (argc <= 1 || string(argv[1]) == "--help") {
+        helpMessage();
+        return 0;
+    }
 
-    Picture trackingImage;
-    trackingImage.readData(argv[2]);
+    if (!validFileName(argv[1])) {
+        cout << "Invalid file name." << endl;
+        return 0;
+    }
+
+    if (argc <= 2 || !validOutputFileName(argv[2])) {
+        cout << "Invalid file name." << endl;
+        return 0;
+    }
+        else {
+            trackingImage.readData(argv[2], trackingImage);
+        }
 
     int index = 3;
     while (index < argc) {
         string method = argv[index];
+        cout << argv[index] << endl;
+
+        if (string(argv[index]).size() >= 5 && !validFileName(argv[index]) && (method != "multiply" && method != "subtract" && method != "overlay" &&
+        method != "screen" && method != "combine" && method != "flip" &&
+        method != "onlyred" && method != "onlygreen" && method != "onlyblue" &&
+        method != "addred" && method != "addgreen" && method != "addblue" &&
+        method != "scalered" && method != "scalegreen" && method != "scaleblue")) {
+            cout << "Invalid method name." << endl;
+            return 0;
+        }
 
         if (method == "multiply" || method == "subtract" || method == "overlay" || method == "screen") {
             if (index + 1 >= argc) {
-                cout << "Missing argument for " << method << ".\n";
-                return 1;
+                cout << "Missing argument." << endl;
+                return 0;
             }
             if (!validFileName(argv[index + 1])) {
-                cout << "Invalid argument, file does not exist.\n";
-                return 1;
+                cout << "Invalid argument, invalid file name." << endl;
+                return 0;
             }
-            // Method processing would go here
-            index += 2;
-        }
-        else if (method == "addred" || method == "addgreen" || method == "addblue" ||
-                 method == "scalered" || method == "scalegreen" || method == "scaleblue") {
-            if (index + 1 >= argc || !isInt(argv[index + 1])) {
-                cout << "Invalid argument, expected a number for " << method << ".\n";
-                return 1;
-            }
-            // Method processing would go here
-            index += 2;
-        }
-        else if (method == "combine" || method == "flip" || method == "onlyred" ||
-                 method == "onlygreen" || method == "onlyblue") {
-            // Special cases for other commands
-            // Method processing would go here
-            index++;
-        }
-        else {
-            cout << "Invalid method name: " << method << "\n";
-            return 1;
-        }
-    }
 
-    trackingImage.writeData(argv[1]);
-    cout << "write\n";
+            if (method == "multiply") {
+                bot.readData(argv[index + 1], bot);
+                trackingImage.multiply(trackingImage, bot, trackingImage);
+                cout << "Multiplying " << argv[index - 1] << " and " << argv[index + 1] << "..." << endl;
+                cout << "... and saving output to " << argv[1] << "!";
+            }
+            else if (method == "subtract") {
+                bot.readData(argv[index + 1], bot);
+                trackingImage.subtract(trackingImage, bot, trackingImage);
+
+                cout << "Subtracting " << argv[index - 1] << " and " << argv[index + 1] << "..." << endl;
+                cout << "... and saving output to " << argv[1] << "!";
+            }
+            else if (method == "overlay") {
+                bot.readData(argv[index + 1], bot);
+                trackingImage.overlay(trackingImage, bot, trackingImage);
+
+                cout << "Overlaying " << argv[index - 1] << "and " << argv[index + 1] << "..." << endl;
+                cout << "... and saving output to " << argv[1] << "!";
+            }
+            else if (method == "screen") {
+                bot.readData(argv[index + 1], bot);
+                trackingImage.screen(trackingImage, bot, trackingImage);
+                cout << "Screening " << argv[index - 1] << " and " << argv[index + 1] << "..." << endl;
+                cout << "... and saving output to " << argv[1] << "!";
+            }
+        }
+
+        if (method == "combine") {
+            if (index + 1 >= argc || index + 2 >= argc) {
+                cout << "Missing argument." << endl;
+                return 0;
+            }
+            if (!validFileName(argv[index + 1]) || !validFileName(argv[index + 2])) {
+                cout << "Invalid argument, invalid file name." << endl;
+                return 0;
+            }
+            // red is tracking image
+            blue.readData(argv[index + 2], blue);
+            green.readData(argv[index + 1], green);
+
+            trackingImage.combine(trackingImage, green, blue, trackingImage);
+
+            cout << "Combining " << argv[index - 1] << " and " << argv[index + 1] << " and " << argv[index + 2] << "..." << endl;
+            cout << "... and saving output to " << argv[1] << "!";
+            index ++;
+        }
+
+        if (method == "flip" || method == "onlyred" || method == "onlygreen" || method == "onlyblue") {
+            if (method == "flip") {
+                trackingImage.flip(trackingImage, trackingImage);
+
+                cout << "Flipping " << argv[2] << " and " << argv[4] << "..." << endl;
+                cout << "... and saving output to " << argv[1] << "!";
+            }
+            else if (method == "onlyred") {
+                trackingImage.onlyred(trackingImage, trackingImage);
+
+                cout << "Onlyredding " << argv[2] << " and " << argv[4] << "..." << endl;
+                cout << "... and saving output to " << argv[1] << "!";
+            }
+            else if (method == "onlygreen") {
+                trackingImage.onlygreen(trackingImage, trackingImage);
+
+                cout << "Onlygreening " << argv[2] << " and " << argv[4] << "..." << endl;
+                cout << "... and saving output to " << argv[1] << "!";
+            }
+            else if (method == "onlyblue") {
+                trackingImage.onlyblue(trackingImage, trackingImage);
+
+                cout << "Onlyblueing " << argv[2] << "and " << argv[4] << "..." << endl;
+                cout << "... and saving output to " << argv[1] << "!";
+            }
+        }
+
+        if (method == "addred" || method == "addgreen" || method == "addblue" || method == "scalered" || method == "scalegreen" || method == "scaleblue") {
+            if (index + 1 >= argc) {
+                cout << "Missing argument." << endl;
+                return 1;
+            }
+            if (!isInt(argv[index + 1])) {
+                cout << "Invalid argument, expected number." << endl;
+                return 1;
+            }
+            if (method == "addred") {
+                trackingImage.addred(trackingImage, stoi(argv[index + 1]), trackingImage);
+
+                cout << "Adding +" << stoi(argv[index + 1]) << " to red channel " << "..." << endl;
+                cout << "... and saving output to " << argv[1] << "!";
+            }
+            else if (method == "addgreen") {
+                trackingImage.addgreen(trackingImage, stoi(argv[index + 1]), trackingImage);
+
+                cout << "Adding +" << stoi(argv[index + 1]) << " to green channel " << "..." << endl;
+                cout << "... and saving output to " << argv[1] << "!";
+            }
+            else if (method == "addblue") {
+                trackingImage.addblue(trackingImage, stoi(argv[index + 1]), trackingImage);
+
+                cout << "Adding +" << stoi(argv[index + 1]) << " to blue channel " << "..." << endl;
+                cout << "... and saving output to " << argv[1] << "!";
+            }
+            else if (method == "scalered") {
+                trackingImage.scalered(trackingImage, stoi(argv[index + 1]), trackingImage);
+
+                cout << "Scaling the red channel by " << stoi(argv[index + 1]) << "..." << endl;
+                cout << "... and saving output to " << argv[1] << "!";
+            }
+            else if (method == "scalegreen") {
+                trackingImage.scalegreen(trackingImage, stoi(argv[index + 1]), trackingImage);
+
+                cout << "Scaling the green channel by " << stoi(argv[index + 1]) << "..." << endl;
+                cout << "... and saving output to " << argv[1] << "!";
+            }
+            else if (method == "scaleblue") {
+                trackingImage.scaleblue(trackingImage, stoi(argv[index + 1]), trackingImage);
+
+                cout << "Scaling the blue channel by " << stoi(argv[index + 1]) << "..." << endl;
+                cout << "... and saving output to " << argv[1] << "!";
+            }
+        }
+        index ++;
+    }
+    cout << "write"<< endl;
+    trackingImage.writeData(argv[1], trackingImage);
     return 0;
 }
