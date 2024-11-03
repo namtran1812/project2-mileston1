@@ -13,17 +13,21 @@ void helpMessage() {
 }
 
 bool validOutputFileName(const string& name) {
-    return name.size() >= 4 && name.substr(name.size() - 4) == ".tga";
+    if (name.size() < 4 || name.substr(name.size() - 4) != ".tga") {
+        cout << "Invalid file name." << endl;
+        return false;
+    }
+    return true;
 }
 
 bool validFileName(const string& name) {
     if (name.size() < 4 || name.substr(name.size() - 4) != ".tga") {
-        cout << "Invalid argument, invalid file name." << endl;
+        cout << "Invalid file name." << endl;
         return false;
     }
     ifstream file(name, ios::binary);
     if (!file.is_open()) {
-        cout << "Invalid argument, file does not exist." << endl;
+        cout << "File does not exist." << endl;
         return false;
     }
     return true;
@@ -55,11 +59,12 @@ int main(int argc, char* argv[]) {
         return 0;
     }
 
+    // Validate output file name
     if (!validOutputFileName(argv[1])) {
-        cout << "Invalid argument, invalid file name." << endl;
         return 0;
     }
 
+    // Validate input file name (initial tracking image)
     if (argc < 3 || !validFileName(argv[2])) {
         return 0;
     } else {
