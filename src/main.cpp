@@ -1,4 +1,3 @@
-
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -227,3 +226,4 @@ int main(int argc, char* argv[]) {
     trackingImage.writeData(argv[1], trackingImage);
     return 0;
 }
+
