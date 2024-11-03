@@ -7,6 +7,11 @@
 #include <cstring>
 #include <cstdlib>
 
+template <typename T>
+T clamp(T value, T min, T max) {
+    return (value < min) ? min : (value > max) ? max : value;
+}
+
 struct Pixel {
     unsigned char b, g, r;
 };
@@ -99,11 +104,11 @@ void flipImage(Image& image) {
 void add_channel(Image& image, int value, char channel) {
     for (Pixel& p : image.pixels) {
         if (channel == 'r') {
-            p.r = static_cast<unsigned char>(std::clamp(p.r + value, 0, 255));
+            p.r = static_cast<unsigned char>(clamp(p.r + value, 0, 255));
         } else if (channel == 'g') {
-            p.g = static_cast<unsigned char>(std::clamp(p.g + value, 0, 255));
+            p.g = static_cast<unsigned char>(clamp(p.g + value, 0, 255));
         } else if (channel == 'b') {
-            p.b = static_cast<unsigned char>(std::clamp(p.b + value, 0, 255));
+            p.b = static_cast<unsigned char>(clamp(p.b + value, 0, 255));
         }
     }
 }
