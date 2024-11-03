@@ -58,4 +58,4 @@ class Picture{
         void scaleblue(Picture& layer, unsigned int value, Picture& outcomeLayer);
 };
 
-#endif //PROJECT2IMAGEPROCESSING_HEADER_H
+#endif
