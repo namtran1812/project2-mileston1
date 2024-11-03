@@ -12,47 +12,38 @@ void helpMessage() {
     cout << "\t./project2.out [output] [firstImage] [method] [...]" << endl;
 }
 
-bool validOutputFileName(string name) {
-    string lastFourCharacters = name.substr(name.length() - 4);
-    if (lastFourCharacters != ".tga"){
-        return false;
-    }
-    return true;
+bool validOutputFileName(const string& name) {
+    return name.size() >= 4 && name.substr(name.size() - 4) == ".tga";
 }
 
-
-bool validFileName(string name) {
-    string lastFourCharacters = name.substr(name.length() - 4);
-    if (lastFourCharacters != ".tga"){
-        return false;
-    }
+bool validFileName(const string& name) {
+    if (name.size() < 4 || name.substr(name.size() - 4) != ".tga") return false;
     ifstream file(name, ios::binary);
-    
-    return true;
+    return file.is_open();
 }
 
-bool isInt(string value) {
+bool fileExists(const string& name) {
+    ifstream file(name, ios::binary);
+    return file.is_open();
+}
+
+bool isInt(const string& value) {
     try {
-        value = stoi(value);
-    }
-    catch (invalid_argument) {
+        stoi(value);
+        return true;
+    } catch (invalid_argument&) {
         return false;
     }
-    return true;
-
 }
 
-
+// Assuming Picture and tgaimage functionalities are defined elsewhere
 Picture trackingImage;
-
 Picture top;
 Picture bot;
 Picture outcome;
-
 Picture red;
 Picture blue;
 Picture green;
-
 Picture first;
 int value;
 
@@ -62,168 +53,88 @@ int main(int argc, char* argv[]) {
         return 0;
     }
 
-    if (!validFileName(argv[1])) {
-        cout << "Invalid file name." << endl;
+    if (!validOutputFileName(argv[1])) {
+        cout << "Invalid output file name." << endl;
         return 0;
     }
 
-    if (argc <= 2 || !validOutputFileName(argv[2])) {
-        cout << "Invalid file name." << endl;
+    if (!validFileName(argv[2]) || !fileExists(argv[2])) {
+        cout << "Invalid argument, file does not exist." << endl;
         return 0;
+    } else {
+        trackingImage.readData(argv[2], trackingImage);
     }
-        else {
-            trackingImage.readData(argv[2], trackingImage);
-        }
 
     int index = 3;
     while (index < argc) {
         string method = argv[index];
-        cout << argv[index] << endl;
-
-        if (string(argv[index]).size() >= 5 && !validFileName(argv[index]) && (method != "multiply" && method != "subtract" && method != "overlay" &&
-        method != "screen" && method != "combine" && method != "flip" &&
-        method != "onlyred" && method != "onlygreen" && method != "onlyblue" &&
-        method != "addred" && method != "addgreen" && method != "addblue" &&
-        method != "scalered" && method != "scalegreen" && method != "scaleblue")) {
+        if (method.size() >= 5 && !validFileName(argv[index]) &&
+            method != "multiply" && method != "subtract" && method != "overlay" &&
+            method != "screen" && method != "combine" && method != "flip" &&
+            method != "onlyred" && method != "onlygreen" && method != "onlyblue" &&
+            method != "addred" && method != "addgreen" && method != "addblue" &&
+            method != "scalered" && method != "scalegreen" && method != "scaleblue") {
             cout << "Invalid method name." << endl;
             return 0;
         }
 
         if (method == "multiply" || method == "subtract" || method == "overlay" || method == "screen") {
-            if (index + 1 >= argc) {
-                cout << "Missing argument." << endl;
+            if (index + 1 >= argc || !fileExists(argv[index + 1])) {
+                cout << "Invalid argument, file does not exist." << endl;
                 return 0;
             }
-            if (!validFileName(argv[index + 1])) {
-                cout << "Invalid argument, invalid file name." << endl;
-                return 0;
-            }
-
-            if (method == "multiply") {
-                bot.readData(argv[index + 1], bot);
-                trackingImage.multiply(trackingImage, bot, trackingImage);
-                cout << "Multiplying " << argv[index - 1] << " and " << argv[index + 1] << "..." << endl;
-                cout << "... and saving output to " << argv[1] << "!";
-            }
-            else if (method == "subtract") {
-                bot.readData(argv[index + 1], bot);
-                trackingImage.subtract(trackingImage, bot, trackingImage);
-
-                cout << "Subtracting " << argv[index - 1] << " and " << argv[index + 1] << "..." << endl;
-                cout << "... and saving output to " << argv[1] << "!";
-            }
-            else if (method == "overlay") {
-                bot.readData(argv[index + 1], bot);
-                trackingImage.overlay(trackingImage, bot, trackingImage);
-
-                cout << "Overlaying " << argv[index - 1] << "and " << argv[index + 1] << "..." << endl;
-                cout << "... and saving output to " << argv[1] << "!";
-            }
-            else if (method == "screen") {
-                bot.readData(argv[index + 1], bot);
-                trackingImage.screen(trackingImage, bot, trackingImage);
-                cout << "Screening " << argv[index - 1] << " and " << argv[index + 1] << "..." << endl;
-                cout << "... and saving output to " << argv[1] << "!";
-            }
+            bot.readData(argv[index + 1], bot);
+            if (method == "multiply") trackingImage.multiply(trackingImage, bot, trackingImage);
+            else if (method == "subtract") trackingImage.subtract(trackingImage, bot, trackingImage);
+            else if (method == "overlay") trackingImage.overlay(trackingImage, bot, trackingImage);
+            else if (method == "screen") trackingImage.screen(trackingImage, bot, trackingImage);
+            cout << "Processing " << method << " with " << argv[index - 1] << " and " << argv[index + 1] << "..." << endl;
+            cout << "... and saving output to " << argv[1] << "!" << endl;
+            index++;
         }
 
         if (method == "combine") {
-            if (index + 1 >= argc || index + 2 >= argc) {
-                cout << "Missing argument." << endl;
+            if (index + 2 >= argc || !fileExists(argv[index + 1]) || !fileExists(argv[index + 2])) {
+                cout << "Invalid argument, file does not exist." << endl;
                 return 0;
             }
-            if (!validFileName(argv[index + 1]) || !validFileName(argv[index + 2])) {
-                cout << "Invalid argument, invalid file name." << endl;
-                return 0;
-            }
-            // red is tracking image
-            blue.readData(argv[index + 2], blue);
             green.readData(argv[index + 1], green);
-
+            blue.readData(argv[index + 2], blue);
             trackingImage.combine(trackingImage, green, blue, trackingImage);
-
-            cout << "Combining " << argv[index - 1] << " and " << argv[index + 1] << " and " << argv[index + 2] << "..." << endl;
-            cout << "... and saving output to " << argv[1] << "!";
-            index ++;
+            cout << "Combining channels..." << endl;
+            cout << "... and saving output to " << argv[1] << "!" << endl;
+            index += 2;
         }
 
         if (method == "flip" || method == "onlyred" || method == "onlygreen" || method == "onlyblue") {
-            if (method == "flip") {
-                trackingImage.flip(trackingImage, trackingImage);
-
-                cout << "Flipping " << argv[2] << " and " << argv[4] << "..." << endl;
-                cout << "... and saving output to " << argv[1] << "!";
-            }
-            else if (method == "onlyred") {
-                trackingImage.onlyred(trackingImage, trackingImage);
-
-                cout << "Onlyredding " << argv[2] << " and " << argv[4] << "..." << endl;
-                cout << "... and saving output to " << argv[1] << "!";
-            }
-            else if (method == "onlygreen") {
-                trackingImage.onlygreen(trackingImage, trackingImage);
-
-                cout << "Onlygreening " << argv[2] << " and " << argv[4] << "..." << endl;
-                cout << "... and saving output to " << argv[1] << "!";
-            }
-            else if (method == "onlyblue") {
-                trackingImage.onlyblue(trackingImage, trackingImage);
-
-                cout << "Onlyblueing " << argv[2] << "and " << argv[4] << "..." << endl;
-                cout << "... and saving output to " << argv[1] << "!";
-            }
+            if (method == "flip") trackingImage.flip(trackingImage, trackingImage);
+            else if (method == "onlyred") trackingImage.onlyred(trackingImage, trackingImage);
+            else if (method == "onlygreen") trackingImage.onlygreen(trackingImage, trackingImage);
+            else if (method == "onlyblue") trackingImage.onlyblue(trackingImage, trackingImage);
+            cout << "Processing " << method << "..." << endl;
+            cout << "... and saving output to " << argv[1] << "!" << endl;
         }
 
         if (method == "addred" || method == "addgreen" || method == "addblue" || method == "scalered" || method == "scalegreen" || method == "scaleblue") {
-            if (index + 1 >= argc) {
-                cout << "Missing argument." << endl;
-                return 1;
-            }
-            if (!isInt(argv[index + 1])) {
+            if (index + 1 >= argc || !isInt(argv[index + 1])) {
                 cout << "Invalid argument, expected number." << endl;
                 return 1;
             }
-            if (method == "addred") {
-                trackingImage.addred(trackingImage, stoi(argv[index + 1]), trackingImage);
-
-                cout << "Adding +" << stoi(argv[index + 1]) << " to red channel " << "..." << endl;
-                cout << "... and saving output to " << argv[1] << "!";
-            }
-            else if (method == "addgreen") {
-                trackingImage.addgreen(trackingImage, stoi(argv[index + 1]), trackingImage);
-
-                cout << "Adding +" << stoi(argv[index + 1]) << " to green channel " << "..." << endl;
-                cout << "... and saving output to " << argv[1] << "!";
-            }
-            else if (method == "addblue") {
-                trackingImage.addblue(trackingImage, stoi(argv[index + 1]), trackingImage);
-
-                cout << "Adding +" << stoi(argv[index + 1]) << " to blue channel " << "..." << endl;
-                cout << "... and saving output to " << argv[1] << "!";
-            }
-            else if (method == "scalered") {
-                trackingImage.scalered(trackingImage, stoi(argv[index + 1]), trackingImage);
-
-                cout << "Scaling the red channel by " << stoi(argv[index + 1]) << "..." << endl;
-                cout << "... and saving output to " << argv[1] << "!";
-            }
-            else if (method == "scalegreen") {
-                trackingImage.scalegreen(trackingImage, stoi(argv[index + 1]), trackingImage);
-
-                cout << "Scaling the green channel by " << stoi(argv[index + 1]) << "..." << endl;
-                cout << "... and saving output to " << argv[1] << "!";
-            }
-            else if (method == "scaleblue") {
-                trackingImage.scaleblue(trackingImage, stoi(argv[index + 1]), trackingImage);
-
-                cout << "Scaling the blue channel by " << stoi(argv[index + 1]) << "..." << endl;
-                cout << "... and saving output to " << argv[1] << "!";
-            }
+            int value = stoi(argv[index + 1]);
+            if (method == "addred") trackingImage.addred(trackingImage, value, trackingImage);
+            else if (method == "addgreen") trackingImage.addgreen(trackingImage, value, trackingImage);
+            else if (method == "addblue") trackingImage.addblue(trackingImage, value, trackingImage);
+            else if (method == "scalered") trackingImage.scalered(trackingImage, value, trackingImage);
+            else if (method == "scalegreen") trackingImage.scalegreen(trackingImage, value, trackingImage);
+            else if (method == "scaleblue") trackingImage.scaleblue(trackingImage, value, trackingImage);
+            cout << "Adjusting channel with " << method << " by " << value << "..." << endl;
+            cout << "... and saving output to " << argv[1] << "!" << endl;
+            index++;
         }
-        index ++;
+        index++;
     }
-    cout << "write"<< endl;
+
+    cout << "write" << endl;
     trackingImage.writeData(argv[1], trackingImage);
     return 0;
 }
-
