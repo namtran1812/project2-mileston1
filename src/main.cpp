@@ -16,22 +16,22 @@ bool hasTgaExtension(const string& name) {
     return name.size() >= 4 && name.substr(name.size() - 4) == ".tga";
 }
 
-bool validOutputFileName(const string& name) {
+bool validateOutputFileName(const string& name) {
     if (!hasTgaExtension(name)) {
-        cout << "Invalid file name." << endl;
+        cout << "Invalid argument, invalid file name." << endl;
         return false;
     }
     return true;
 }
 
-bool validFileName(const string& name) {
+bool validateInputFileName(const string& name) {
     if (!hasTgaExtension(name)) {
-        cout << "Invalid file name." << endl;
+        cout << "Invalid argument, invalid file name." << endl;
         return false;
     }
     ifstream file(name, ios::binary);
     if (!file.is_open()) {
-        cout << "File does not exist." << endl;
+        cout << "Invalid argument, file does not exist." << endl;
         return false;
     }
     return true;
@@ -64,12 +64,12 @@ int main(int argc, char* argv[]) {
     }
 
     // Validate output file name
-    if (!validOutputFileName(argv[1])) {
+    if (!validateOutputFileName(argv[1])) {
         return 0;
     }
 
     // Validate input file name (initial tracking image)
-    if (argc < 3 || !validFileName(argv[2])) {
+    if (argc < 3 || !validateInputFileName(argv[2])) {
         return 0;
     } else {
         trackingImage.readData(argv[2], trackingImage);
@@ -79,8 +79,7 @@ int main(int argc, char* argv[]) {
     while (index < argc) {
         string method = argv[index];
 
-        if (method.size() >= 5 && !validFileName(argv[index]) &&
-            method != "multiply" && method != "subtract" && method != "overlay" &&
+        if (method.size() >= 5 && method != "multiply" && method != "subtract" && method != "overlay" &&
             method != "screen" && method != "combine" && method != "flip" &&
             method != "onlyred" && method != "onlygreen" && method != "onlyblue" &&
             method != "addred" && method != "addgreen" && method != "addblue" &&
@@ -94,7 +93,7 @@ int main(int argc, char* argv[]) {
                 cout << "Missing argument." << endl;
                 return 0;
             }
-            if (!validFileName(argv[index + 1])) {
+            if (!validateInputFileName(argv[index + 1])) {
                 return 0;
             }
             bot.readData(argv[index + 1], bot);
@@ -111,7 +110,7 @@ int main(int argc, char* argv[]) {
                 cout << "Missing argument." << endl;
                 return 0;
             }
-            if (!validFileName(argv[index + 1]) || !validFileName(argv[index + 2])) {
+            if (!validateInputFileName(argv[index + 1]) || !validateInputFileName(argv[index + 2])) {
                 return 0;
             }
             green.readData(argv[index + 1], green);
