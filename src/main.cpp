@@ -188,6 +188,14 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+    bool useAlphaBit = false;
+    for (int i = 3; i < argc; ++i) {
+        if (std::string(argv[i]) == "useAlphaBit") {
+            useAlphaBit = true;
+            break;
+        }
+    }
+
     Image trackingImage;
     if (!trackingImage.load(inputFilename)) {
         std::cerr << "File does not exist." << std::endl;
