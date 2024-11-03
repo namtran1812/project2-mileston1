@@ -13,21 +13,25 @@ void helpMessage() {
 }
 
 bool validOutputFileName(string name) {
-    string lastFourCharacters = name.substr(name.length() - 4);
-    if (lastFourCharacters != ".tga"){
+    if (name.length() < 4) {
         return false;
     }
-    return true;
+    string lastFourCharacters = name.substr(name.length() - 4);
+    return lastFourCharacters == ".tga";
 }
 
-
 bool validFileName(string name) {
+    if (name.length() < 4) {
+        return false;
+    }
     string lastFourCharacters = name.substr(name.length() - 4);
-    if (lastFourCharacters != ".tga"){
+    if (lastFourCharacters != ".tga") {
         return false;
     }
     ifstream file(name, ios::binary);
-    
+    if (!file.is_open()) {
+        return false;
+    }
     return true;
 }
 
