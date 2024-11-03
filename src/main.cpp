@@ -66,7 +66,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Validate input file name (initial tracking image)
-    if (argc < 3 || !validFileName(argv[2])) {
+    if (argc < 3 || !validFileName(argv[2], true)) {  // Pass `true` to apply specific error message for second argument
         return 0;
     } else {
         trackingImage.readData(argv[2], trackingImage);
