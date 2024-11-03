@@ -1,3 +1,6 @@
+#ifndef PROJECT2IMAGEPROCESSING_HEADER_H
+#define PROJECT2IMAGEPROCESSING_HEADER_H
+
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -55,4 +58,4 @@ class Picture{
         void scaleblue(Picture& layer, unsigned int value, Picture& outcomeLayer);
 };
 
-#endif 
+#endif //PROJECT2IMAGEPROCESSING_HEADER_H
