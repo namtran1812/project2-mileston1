@@ -3,7 +3,7 @@
 #include <string>
 #include <sstream>
 #include <vector>
-#include "header.h"
+#include "tgaimage.h"
 using namespace std;
 
 void helpMessage() {
