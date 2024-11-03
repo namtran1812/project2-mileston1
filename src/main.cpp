@@ -26,12 +26,12 @@ bool validOutputFileName(const string& name) {
 
 bool validFileName(const string& name) {
     if (!hasTgaExtension(name)) {
-        cout << "Invalid argument, invalid file name." << endl;
+        cout << "Invalid file name." << endl;
         return false;
     }
     ifstream file(name, ios::binary);
     if (!file.is_open()) {
-        cout << "Invalid argument, file does not exist." << endl;
+        cout << "File does not exist." << endl;
         return false;
     }
     return true;
