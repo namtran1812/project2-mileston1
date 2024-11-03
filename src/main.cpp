@@ -99,11 +99,11 @@ void flipImage(Image& image) {
 void add_channel(Image& image, int value, char channel) {
     for (Pixel& p : image.pixels) {
         if (channel == 'r') {
-            p.r = static_cast<unsigned char>(std::min(255, std::max(0, p.r + value)));
+            p.r = static_cast<unsigned char>(std::clamp(p.r + value, 0, 255));
         } else if (channel == 'g') {
-            p.g = static_cast<unsigned char>(std::min(255, std::max(0, p.g + value)));
+            p.g = static_cast<unsigned char>(std::clamp(p.g + value, 0, 255));
         } else if (channel == 'b') {
-            p.b = static_cast<unsigned char>(std::min(255, std::max(0, p.b + value)));
+            p.b = static_cast<unsigned char>(std::clamp(p.b + value, 0, 255));
         }
     }
 }
