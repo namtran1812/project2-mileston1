@@ -189,6 +189,8 @@ int main(int argc, char* argv[]) {
     }
 
     bool useAlphaBit = false;
+
+    // Example: You can toggle this based on an argument for tasks 17-20
     for (int i = 3; i < argc; ++i) {
         if (std::string(argv[i]) == "useAlphaBit") {
             useAlphaBit = true;
