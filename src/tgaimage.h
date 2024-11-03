@@ -1,5 +1,5 @@
-#ifndef PROJECT2IMAGEPROCESSING_HEADER_H
-#define PROJECT2IMAGEPROCESSING_HEADER_H
+#ifndef tga_image_h
+#define tga_imaga_h
 
 #include <iostream>
 #include <fstream>
